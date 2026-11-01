@@ -220,6 +220,11 @@ public class DriveManagementService {
     }
 
     @Transactional(readOnly = true)
+    public List<Pledge> listPledges() {
+        return pledgeRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
     public Optional<Pledge> findPledgeById(UUID pledgeId) {
         return pledgeRepository.findById(pledgeId);
     }

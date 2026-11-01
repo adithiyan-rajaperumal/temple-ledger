@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
   Landmark, 
@@ -9,17 +9,43 @@ import {
   Lock, 
   Menu, 
   X,
-  Globe
+  Globe,
+  LogOut,
+  ShieldCheck,
+  UserCheck
 } from 'lucide-react';
 import { changeLanguage } from '../i18n';
+import { isAuthenticated, getCurrentUser, isSuperAdmin, logout } from '../services/auth';
 
 export default function Navbar() {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const currentLang = i18n.language ? i18n.language.split('-')[0] : 'en';
 
+  const [authed, setAuthed] = useState(isAuthenticated());
+  const [user, setUser] = useState(getCurrentUser());
+  const [superAdmin, setSuperAdmin] = useState(isSuperAdmin());
+
+  useEffect(() => {
+    const handleAuthChange = () => {
+      setAuthed(isAuthenticated());
+      setUser(getCurrentUser());
+      setSuperAdmin(isSuperAdmin());
+    };
+
+    window.addEventListener('temple-ledger-auth-change', handleAuthChange);
+    return () => window.removeEventListener('temple-ledger-auth-change', handleAuthChange);
+  }, []);
+
   const handleLanguageSwitch = (lang) => {
     changeLanguage(lang);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setMobileMenuOpen(false);
+    navigate('/');
   };
 
   const navLinkClass = ({ isActive }) =>
@@ -70,9 +96,21 @@ export default function Navbar() {
               <FileSpreadsheet className="w-4 h-4 mr-2" />
               {t('nav.transactions')}
             </NavLink>
+
+            {/* Authenticated Admin Tab */}
+            {authed && (
+              <NavLink to="/admin" className={navLinkClass}>
+                {superAdmin ? (
+                  <ShieldCheck className="w-4 h-4 mr-1.5 text-amber-600" />
+                ) : (
+                  <UserCheck className="w-4 h-4 mr-1.5 text-blue-600" />
+                )}
+                <span>{t('nav.adminPortal', 'Admin Portal')}</span>
+              </NavLink>
+            )}
           </nav>
 
-          {/* Desktop Right Actions: Language Toggle & Admin Login */}
+          {/* Desktop Right Actions: Language Toggle & User Status / Admin Login */}
           <div className="hidden md:flex items-center space-x-3">
             {/* Bilingual Toggle Button (EN | தமிழ்) */}
             <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200">
@@ -104,14 +142,35 @@ export default function Navbar() {
               </button>
             </div>
 
-            {/* Admin Login Button */}
-            <Link
-              to="/login"
-              className="inline-flex items-center px-3.5 py-1.5 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-400 transition-colors shadow-2xs"
-            >
-              <Lock className="w-4 h-4 mr-1.5 text-slate-500" />
-              {t('nav.login')}
-            </Link>
+            {/* User Profile or Admin Login Button */}
+            {authed ? (
+              <div className="flex items-center gap-2 pl-1 border-l border-slate-200">
+                <div className="flex flex-col text-right leading-tight">
+                  <span className="text-xs font-bold text-slate-900 truncate max-w-[120px]">
+                    {user?.fullName || user?.username}
+                  </span>
+                  <span className="text-[10px] font-semibold text-slate-500">
+                    {superAdmin ? 'Super Admin' : 'Operator'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  title="Logout"
+                  className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="inline-flex items-center px-3.5 py-1.5 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-400 transition-colors shadow-2xs"
+              >
+                <Lock className="w-4 h-4 mr-1.5 text-slate-500" />
+                {t('nav.login')}
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -165,15 +224,52 @@ export default function Navbar() {
             <FileSpreadsheet className="w-5 h-5 mr-3 text-slate-500" />
             {t('nav.transactions')}
           </NavLink>
-          <div className="pt-3 border-t border-slate-200 flex flex-col gap-2">
-            <Link
-              to="/login"
+
+          {authed && (
+            <NavLink
+              to="/admin"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-center w-full px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100"
+              className={mobileNavLinkClass}
             >
-              <Lock className="w-4 h-4 mr-2 text-slate-500" />
-              {t('nav.login')}
-            </Link>
+              {superAdmin ? (
+                <ShieldCheck className="w-5 h-5 mr-3 text-amber-600" />
+              ) : (
+                <UserCheck className="w-5 h-5 mr-3 text-blue-600" />
+              )}
+              {t('nav.adminPortal', 'Admin Portal')}
+            </NavLink>
+          )}
+
+          <div className="pt-3 border-t border-slate-200 flex flex-col gap-2">
+            {authed ? (
+              <div className="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-xl">
+                <div>
+                  <div className="text-sm font-bold text-slate-900">
+                    {user?.fullName || user?.username}
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    {superAdmin ? 'Super Admin' : 'Data Entry Operator'}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="px-3 py-1 text-xs font-bold text-red-700 bg-red-100 hover:bg-red-200 rounded-lg flex items-center gap-1"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>{t('nav.logout', 'Logout')}</span>
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-center w-full px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100"
+              >
+                <Lock className="w-4 h-4 mr-2 text-slate-500" />
+                {t('nav.login')}
+              </Link>
+            )}
           </div>
         </div>
       )}

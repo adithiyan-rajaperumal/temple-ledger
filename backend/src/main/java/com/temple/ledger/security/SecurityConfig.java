@@ -53,7 +53,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/donations/**",
                                 "/api/v1/expenses/**",
-                                "/api/v1/contractors/**"
+                                "/api/v1/contractors/**",
+                                "/api/v1/pledges/**"
                         ).hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_DATA_ENTRY")
                         .anyRequest().authenticated()
                 )
