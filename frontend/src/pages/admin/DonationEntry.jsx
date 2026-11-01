@@ -799,7 +799,7 @@ export default function DonationEntry() {
         <ReceiptModal
           isOpen={isReceiptModalOpen}
           receiptNo={successReceipt.receiptNo}
-          initialData={successReceipt}
+          receiptData={successReceipt}
           onClose={() => setIsReceiptModalOpen(false)}
         />
       )}

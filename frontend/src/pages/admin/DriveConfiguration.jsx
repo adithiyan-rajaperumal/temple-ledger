@@ -214,7 +214,10 @@ export default function DriveConfiguration() {
       (item.headNameTa && item.headNameTa.includes(searchQuery));
 
     const matchesStatus =
-      statusFilter === 'ALL' || item.status === statusFilter;
+      statusFilter === 'ALL' ||
+      (statusFilter === 'PARTICIPATING'
+        ? item.status !== 'OPTED_OUT' && item.status !== 'EXEMPTED'
+        : item.status === statusFilter);
 
     return matchesSearch && matchesStatus;
   });

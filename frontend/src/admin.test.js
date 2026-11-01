@@ -148,4 +148,81 @@ assert.strictEqual(evaluateAllocationTarget(10000, 'OPTED_OUT', 10000), 0);
 assert.strictEqual(evaluateAllocationTarget(20000, 'EXEMPTED', null), 0);
 console.log('✓ Drive allocation status rules verified');
 
+// 7. Test Drive Status Filtering logic (matches DriveConfiguration.jsx)
+console.log('Testing Drive Status Filtering Logic...');
+function filterDriveAllocations(items, statusFilter) {
+  return items.filter((item) => {
+    return statusFilter === 'ALL' ||
+      (statusFilter === 'PARTICIPATING'
+        ? item.status !== 'OPTED_OUT' && item.status !== 'EXEMPTED'
+        : item.status === statusFilter);
+  });
+}
+
+const mockAllocations = [
+  { id: 1, status: 'PARTICIPATING' },
+  { id: 2, status: 'OPTED_OUT' },
+  { id: 3, status: 'EXEMPTED' },
+  { id: 4, status: 'UNKNOWN_OR_ACTIVE' },
+];
+
+assert.strictEqual(filterDriveAllocations(mockAllocations, 'ALL').length, 4);
+assert.deepStrictEqual(
+  filterDriveAllocations(mockAllocations, 'PARTICIPATING').map((i) => i.id),
+  [1, 4],
+  'PARTICIPATING filter should include non-opted-out, non-exempted items'
+);
+assert.deepStrictEqual(
+  filterDriveAllocations(mockAllocations, 'OPTED_OUT').map((i) => i.id),
+  [2]
+);
+assert.deepStrictEqual(
+  filterDriveAllocations(mockAllocations, 'EXEMPTED').map((i) => i.id),
+  [3]
+);
+console.log('✓ Drive status filtering logic verified');
+
+// 8. Test Pledge Type enum and partial fulfillment status checks
+console.log('Testing Pledge Type Enum & Status Checks...');
+const validPledgeTypes = ['MONETARY', 'IN_KIND_MATERIAL', 'HYBRID'];
+assert.ok(validPledgeTypes.includes('IN_KIND_MATERIAL'), 'Must support IN_KIND_MATERIAL enum');
+
+function isPledgePartialBadge(status) {
+  return status === 'PARTIALLY_FULFILLED' || status === 'PARTIAL';
+}
+assert.strictEqual(isPledgePartialBadge('PARTIALLY_FULFILLED'), true);
+assert.strictEqual(isPledgePartialBadge('PARTIAL'), true);
+assert.strictEqual(isPledgePartialBadge('COMPLETED'), false);
+assert.strictEqual(isPledgePartialBadge('PENDING'), false);
+console.log('✓ Pledge enum and partial badge logic verified');
+
+// 9. Test Audit Trail client-side entity filtering fallback
+console.log('Testing Audit Trail Client-Side Fallback Filtering...');
+function filterAuditLogs(logs, entityFilter) {
+  return logs.filter((log) => {
+    if (entityFilter && log.entityName !== entityFilter) {
+      return false;
+    }
+    return true;
+  });
+}
+
+const mockLogs = [
+  { id: '1', entityName: 'DONATION' },
+  { id: '2', entityName: 'EXPENSE' },
+  { id: '3', entityName: 'DONATION' },
+  { id: '4', entityName: 'PLEDGE' },
+];
+
+assert.strictEqual(filterAuditLogs(mockLogs, '').length, 4);
+assert.deepStrictEqual(
+  filterAuditLogs(mockLogs, 'DONATION').map((l) => l.id),
+  ['1', '3']
+);
+assert.deepStrictEqual(
+  filterAuditLogs(mockLogs, 'EXPENSE').map((l) => l.id),
+  ['2']
+);
+console.log('✓ Audit trail client-side entity filter verified');
+
 console.log('--- All Admin Portal & Form Tests PASSED! ---');

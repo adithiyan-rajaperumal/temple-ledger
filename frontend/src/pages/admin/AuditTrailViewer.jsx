@@ -16,12 +16,12 @@ import {
 import { getAdminAuditLogs } from '../../services/api';
 import { formatDate } from '../../utils/formatters';
 
-export default function AuditTrailViewer() {
+export default function AuditTrailViewer({ entityFilter: initialEntityFilter = '' } = {}) {
   const { t } = useTranslation();
 
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [entityNameFilter, setEntityNameFilter] = useState('');
+  const [entityFilter, setEntityFilter] = useState(initialEntityFilter);
   const [searchEntityId, setSearchEntityId] = useState('');
   const [expandedLogId, setExpandedLogId] = useState(null);
 
@@ -29,7 +29,7 @@ export default function AuditTrailViewer() {
     setLoading(true);
     try {
       const params = {};
-      if (entityNameFilter) params.entityName = entityNameFilter;
+      if (entityFilter) params.entityName = entityFilter;
       if (searchEntityId.trim()) params.entityId = searchEntityId.trim();
 
       const data = await getAdminAuditLogs(params);
@@ -49,7 +49,7 @@ export default function AuditTrailViewer() {
 
   useEffect(() => {
     loadAuditLogs();
-  }, [entityNameFilter]);
+  }, [entityFilter]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -69,6 +69,14 @@ export default function AuditTrailViewer() {
       return raw;
     }
   };
+
+  // Client-side fallback filtering on entityFilter
+  const displayedLogs = logs.filter((log) => {
+    if (entityFilter && log.entityName !== entityFilter) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
@@ -109,8 +117,8 @@ export default function AuditTrailViewer() {
             <span>Entity:</span>
           </div>
           <select
-            value={entityNameFilter}
-            onChange={(e) => setEntityNameFilter(e.target.value)}
+            value={entityFilter}
+            onChange={(e) => setEntityFilter(e.target.value)}
             className="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold"
           >
             <option value="">All Entities</option>
@@ -156,14 +164,14 @@ export default function AuditTrailViewer() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {logs.length === 0 ? (
+            {displayedLogs.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-4 py-10 text-center text-slate-500">
                   {loading ? 'Querying immutable audit logs...' : 'No audit records found.'}
                 </td>
               </tr>
             ) : (
-              logs.map((log) => {
+              displayedLogs.map((log) => {
                 const isExpanded = expandedLogId === log.id;
                 const beforeJson = parseJsonSafe(log.beforeState);
                 const afterJson = parseJsonSafe(log.afterState);

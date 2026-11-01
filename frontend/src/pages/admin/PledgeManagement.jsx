@@ -275,7 +275,7 @@ export default function PledgeManagement() {
                         className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                           p.status === 'COMPLETED'
                             ? 'bg-emerald-100 text-emerald-800'
-                            : p.status === 'PARTIAL'
+                            : p.status === 'PARTIALLY_FULFILLED' || p.status === 'PARTIAL'
                             ? 'bg-amber-100 text-amber-800'
                             : 'bg-slate-100 text-slate-700'
                         }`}
@@ -357,9 +357,9 @@ export default function PledgeManagement() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setPledgeType('MATERIAL')}
+                    onClick={() => setPledgeType('IN_KIND_MATERIAL')}
                     className={`py-2 px-3 rounded-xl border text-xs font-bold transition ${
-                      pledgeType === 'MATERIAL'
+                      pledgeType === 'IN_KIND_MATERIAL'
                         ? 'border-purple-500 bg-purple-50 text-purple-900 ring-2 ring-purple-400'
                         : 'border-slate-200 bg-slate-50 text-slate-600'
                     }`}
