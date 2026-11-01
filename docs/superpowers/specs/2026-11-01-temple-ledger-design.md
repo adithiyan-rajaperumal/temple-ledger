@@ -133,8 +133,36 @@ CREATE TABLE journal_postings (
 );
 ```
 
-### 4.2 Family Directory & Multi-Drive Tracking
+### 4.2 Commitments, Pledges & Multi-Drive Tracking
+
+The system supports a **Universal Pledge Engine** that handles both structured village drives (e.g., 60 families × ₹10k or ₹20k) and custom donor pledges (external devotees or sponsors committing money or materials in installments):
+
 ```sql
+CREATE TYPE pledge_type AS ENUM ('MONETARY', 'IN_KIND_MATERIAL', 'HYBRID');
+CREATE TYPE pledge_status AS ENUM ('PENDING', 'PARTIALLY_FULFILLED', 'COMPLETED', 'CANCELLED');
+
+CREATE TABLE pledges (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    pledge_code VARCHAR(32) UNIQUE NOT NULL,    -- e.g. PLG-2026-0001
+    pledge_date DATE NOT NULL,
+    pledge_type pledge_type NOT NULL DEFAULT 'MONETARY',
+    donor_name VARCHAR(128) NOT NULL,
+    donor_name_ta VARCHAR(128),
+    village VARCHAR(128),
+    phone VARCHAR(20),
+    family_id UUID REFERENCES families(id),      -- Linked if village family member
+    drive_id UUID REFERENCES drives(id),        -- Linked if part of specific Drive
+    target_monetary_amount NUMERIC(12, 2) DEFAULT 0.00,
+    target_material_desc TEXT,                  -- e.g. "100 bags of Ultratech Cement"
+    target_material_qty NUMERIC(10, 2) DEFAULT 0.00,
+    target_material_unit VARCHAR(32),           -- "BAGS", "LOADS", "DOORS"
+    status pledge_status DEFAULT 'PENDING',
+    notes TEXT,
+    created_by VARCHAR(64) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 CREATE TABLE families (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     family_code VARCHAR(32) UNIQUE NOT NULL, -- e.g. FAM-001 to FAM-060
@@ -191,6 +219,7 @@ CREATE TABLE donations (
     donor_source donation_source NOT NULL,
     family_id UUID REFERENCES families(id),
     drive_id UUID REFERENCES drives(id),
+    pledge_id UUID REFERENCES pledges(id),       -- Linked if paying an installment on a pledge
     donor_name VARCHAR(128) NOT NULL,
     donor_name_ta VARCHAR(128),
     village VARCHAR(128),
@@ -294,15 +323,19 @@ CREATE TABLE audit_logs (
 
 ## 5. Domain Rules & Business Logic
 
-### 5.1 Inflow Processing Logic
+### 5.1 Inflow & Universal Installment Processing Logic
 1. **Receipt Book or GPay Tracking**:
    * For Cash donations: `physical_book_receipt_no` is mandatory.
    * For GPay/Online donations: `gpay_transaction_id` is mandatory.
    * System auto-assigns an unalterable global digital receipt number: `RCT-YYYY-XXXXX`.
-2. **Drive Allocation & Installments**:
-   * If a donation is tagged to a `family_id` and `drive_id`, the system validates that the family is an active participant in that drive.
-   * The payment amount increments the family's paid balance for that drive.
-   * If the family's total paid reaches or exceeds the target, status updates to `COMPLETED`; otherwise `PARTIALLY_PAID`.
+2. **Universal Installments for Pledges & Drives**:
+   * Any donation can link to an active **Pledge** or a **Village Family Drive**:
+     * A donor committing ₹50,000 can pay across multiple installments via cash, GPay, or materials.
+     * A sponsor committing 100 bags of cement or 4 doors can deliver them in installment batches.
+     * Each installment logs its respective mode (`CASH` with book receipt, `GPAY_ONLINE` with transaction ID, or `IN_KIND` with quantity & valuation).
+     * The system atomically updates the parent Pledge's `fulfilled_amount` / `fulfilled_material_qty` and calculates remaining balance due.
+     * When fully fulfilled, the pledge status updates to `COMPLETED`.
+   * **One-Off Donations**: Direct donations without a pledge are processed immediately as 100% fulfilled single-entry receipts.
 3. **In-Kind Material Donations**:
    * Stored with physical quantity, unit, and market estimated rate.
    * Journal entry debits `1030 (In-Kind Material Stock)` and credits `4030 (In-Kind Material Contributions)`.
