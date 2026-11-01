@@ -53,7 +53,7 @@
     <description>Generic Temple &amp; Community Ledger Backend</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>17</java.version>
         <jjwt.version>0.12.6</jjwt.version>
     </properties>
 
