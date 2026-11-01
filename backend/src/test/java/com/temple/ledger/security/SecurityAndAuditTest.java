@@ -281,4 +281,22 @@ class SecurityAndAuditTest {
         assertThat(jwtTokenProvider.validateToken("invalid.token.here")).isFalse();
         assertThat(jwtTokenProvider.validateToken("")).isFalse();
     }
+
+    @Test
+    @DisplayName("AuditService 6-parameter overload delegates with null ipAddress and changeReason")
+    void testAuditServiceSixParamOverload() {
+        AuditLog log = auditService.logAction(
+                "DRIVE",
+                "DRIVE-101",
+                "CREATE",
+                "super_admin",
+                null,
+                Map.of("name", "Test Drive")
+        );
+        assertThat(log).isNotNull();
+        assertThat(log.getEntityName()).isEqualTo("DRIVE");
+        assertThat(log.getIpAddress()).isNull();
+        assertThat(log.getChangeReason()).isNull();
+        assertThat(log.getAfterState()).contains("Test Drive");
+    }
 }

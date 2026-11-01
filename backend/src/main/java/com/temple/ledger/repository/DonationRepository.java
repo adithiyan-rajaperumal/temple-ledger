@@ -31,4 +31,10 @@ public interface DonationRepository extends JpaRepository<Donation, UUID> {
 
     @Query("SELECT COALESCE(SUM(d.amount), 0) FROM Donation d WHERE d.pledge.id = :pledgeId")
     BigDecimal sumAmountByPledgeId(@Param("pledgeId") UUID pledgeId);
+
+    @Query("SELECT COALESCE(SUM(d.amount), 0) FROM Donation d WHERE d.paymentMode != com.temple.ledger.domain.inflow.PaymentMode.IN_KIND")
+    BigDecimal sumTotalMonetaryDonations();
+
+    @Query("SELECT COALESCE(SUM(d.amount), 0) FROM Donation d WHERE d.drive.id = :driveId")
+    BigDecimal sumAmountByDriveId(@Param("driveId") UUID driveId);
 }

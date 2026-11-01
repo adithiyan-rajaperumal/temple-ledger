@@ -28,6 +28,17 @@ public class AuditService {
             String entityId,
             String action,
             String performedBy,
+            Object beforeState,
+            Object afterState) {
+        return logAction(entityName, entityId, action, performedBy, null, beforeState, afterState, null);
+    }
+
+    @Transactional
+    public AuditLog logAction(
+            String entityName,
+            String entityId,
+            String action,
+            String performedBy,
             String ipAddress,
             Object beforeState,
             Object afterState,
