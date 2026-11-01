@@ -1,0 +1,44 @@
+# ==============================================================================
+# Render Blueprint Specification: Generic Community & Temple Ledger System
+# Docs: https://render.com/docs/blueprint-spec
+# ==============================================================================
+version: "1"
+
+services:
+  - type: web
+    name: temple-ledger-backend
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    plan: free
+    region: oregon # Available options: oregon, frankfurt, ohio, singapore
+    healthCheckPath: /api/v1/public/dashboard/summary
+    envVars:
+      - key: PORT
+        value: 8080
+
+      # Supabase PostgreSQL Database Connection
+      # Example URL: jdbc:postgresql://db.[PROJECT-REF].supabase.co:5432/postgres?sslmode=require
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+
+      # Supabase Database Username (default: postgres)
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+
+      # Supabase Database Password
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+
+      # Cryptographic 256-bit Secret Key for Stateless JWT Authentication
+      # Automatically generated securely by Render on initial deploy
+      - key: JWT_SECRET
+        generateValue: true
+
+      # Allowed CORS Origins: Cloudflare Pages wildcard & local dev environments
+      - key: CORS_ALLOWED_ORIGINS
+        value: http://localhost:5173,http://localhost:3000,https://*.pages.dev
+
+      # Memory & Performance Flags for Containerized JVM Runtime
+      - key: JAVA_OPTS
+        value: -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom
