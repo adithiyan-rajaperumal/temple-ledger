@@ -53,6 +53,9 @@ class DriveManagementServiceTest {
     @Autowired
     private PledgeRepository pledgeRepository;
 
+    @Autowired
+    private AuditService auditService;
+
     private List<Family> seededFamilies = new ArrayList<>();
 
     @BeforeEach
@@ -136,6 +139,12 @@ class DriveManagementServiceTest {
 
         assertThat(updatedAllocation.getStatus()).isEqualTo(CommitmentStatus.OPTED_OUT);
         assertThat(updatedAllocation.getNotes()).isEqualTo("Family opted out due to financial hardship");
+
+        List<com.temple.ledger.domain.audit.AuditLog> logs = auditService.getAuditHistory("DRIVE_ALLOCATION", updatedAllocation.getId().toString());
+        assertThat(logs).hasSize(1);
+        assertThat(logs.get(0).getAction()).isEqualTo("UPDATE");
+        assertThat(logs.get(0).getPerformedBy()).isEqualTo("admin");
+        assertThat(logs.get(0).getChangeReason()).contains(familyToOptOut.getFamilyCode());
 
         DriveProgressSummary progress = driveManagementService.getDriveProgress(drive1.getId());
         assertThat(progress.getTotalAllocationsCount()).isEqualTo(60);

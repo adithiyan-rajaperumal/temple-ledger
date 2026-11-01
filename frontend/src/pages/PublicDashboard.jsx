@@ -73,7 +73,7 @@ export default function PublicDashboard() {
       : 0;
 
   const commitmentsSubtitle = summary
-    ? `${t('dashboard.familyPledges')}: ${formatCurrency(summary.pendingFamilyDriveBalance || 0)} • ${t('dashboard.contractorDue')}: ${formatCurrency(summary.pendingContractorLiabilities || 0)}`
+    ? `${t('dashboard.pledgesDue')}: ${formatCurrency(summary.pendingFamilyDriveBalance || 0)} | ${t('dashboard.contractorDues')}: ${formatCurrency(summary.pendingContractorLiabilities || 0)}`
     : t('metrics.pendingBalanceDesc');
 
   return (

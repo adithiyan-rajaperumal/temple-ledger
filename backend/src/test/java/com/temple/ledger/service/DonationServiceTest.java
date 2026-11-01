@@ -67,6 +67,9 @@ class DonationServiceTest {
     @Autowired
     private AccountRepository accountRepository;
 
+    @Autowired
+    private AuditService auditService;
+
     private Family testFamily;
     private Drive testDrive;
 
@@ -153,6 +156,12 @@ class DonationServiceTest {
 
         assertThat(cashBalance).isEqualByComparingTo(new BigDecimal("2500.00"));
         assertThat(generalDonationBalance).isEqualByComparingTo(new BigDecimal("2500.00"));
+
+        List<com.temple.ledger.domain.audit.AuditLog> audits = auditService.getAuditHistory("DONATION", response.getDonationId().toString());
+        assertThat(audits).hasSize(1);
+        assertThat(audits.get(0).getAction()).isEqualTo("CREATE");
+        assertThat(audits.get(0).getPerformedBy()).isEqualTo("admin");
+        assertThat(audits.get(0).getChangeReason()).contains(response.getReceiptNo());
     }
 
     @Test

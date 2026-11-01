@@ -3,6 +3,7 @@ package com.temple.ledger.service;
 import com.temple.ledger.domain.accounting.Account;
 import com.temple.ledger.domain.accounting.AccountType;
 import com.temple.ledger.domain.accounting.JournalEntry;
+import com.temple.ledger.domain.audit.AuditLog;
 import com.temple.ledger.domain.inflow.PaymentMode;
 import com.temple.ledger.domain.outflow.Expense;
 import com.temple.ledger.domain.outflow.ExpenseCategory;
@@ -48,6 +49,9 @@ class ExpenseServiceTest {
 
     @Autowired
     private AccountRepository accountRepository;
+
+    @Autowired
+    private AuditService auditService;
 
     @BeforeEach
     void setUp() {
@@ -107,6 +111,13 @@ class ExpenseServiceTest {
         Expense persisted = expenseRepository.findByVoucherNo(response.getVoucherNo()).orElseThrow();
         assertThat(persisted.getAmount()).isEqualByComparingTo("15000.00");
         assertThat(persisted.getCreatedBy()).isEqualTo("admin_user");
+        assertThat(persisted.getJournalEntry().getReferenceId()).isEqualTo(persisted.getId());
+
+        List<AuditLog> auditHistory = auditService.getAuditHistory("EXPENSE", persisted.getId().toString());
+        assertThat(auditHistory).hasSize(1);
+        assertThat(auditHistory.get(0).getAction()).isEqualTo("CREATE");
+        assertThat(auditHistory.get(0).getPerformedBy()).isEqualTo("admin_user");
+        assertThat(auditHistory.get(0).getChangeReason()).contains(persisted.getVoucherNo());
     }
 
     @Test

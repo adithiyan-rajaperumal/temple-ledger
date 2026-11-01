@@ -39,6 +39,18 @@ public class AuditService {
             String entityId,
             String action,
             String performedBy,
+            Object beforeState,
+            Object afterState,
+            String changeReason) {
+        return logAction(entityName, entityId, action, performedBy, null, beforeState, afterState, changeReason);
+    }
+
+    @Transactional
+    public AuditLog logAction(
+            String entityName,
+            String entityId,
+            String action,
+            String performedBy,
             String ipAddress,
             Object beforeState,
             Object afterState,
@@ -67,6 +79,11 @@ public class AuditService {
     @Transactional(readOnly = true)
     public List<AuditLog> getAuditHistory(String entityName, String entityId) {
         return auditLogRepository.findByEntityNameAndEntityIdOrderByTimestampDesc(entityName, entityId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AuditLog> findByEntityNameOrderByTimestampDesc(String entityName, Pageable pageable) {
+        return auditLogRepository.findByEntityNameOrderByTimestampDesc(entityName, pageable);
     }
 
     @Transactional(readOnly = true)

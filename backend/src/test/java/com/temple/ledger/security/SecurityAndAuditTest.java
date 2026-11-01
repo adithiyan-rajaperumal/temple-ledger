@@ -299,4 +299,41 @@ class SecurityAndAuditTest {
         assertThat(log.getChangeReason()).isNull();
         assertThat(log.getAfterState()).contains("Test Drive");
     }
+
+    @Test
+    @DisplayName("AuditService 7-parameter overload delegates properly with null ipAddress")
+    void testAuditServiceSevenParamOverload() {
+        AuditLog log = auditService.logAction(
+                "EXPENSE",
+                "EXP-999",
+                "CREATE",
+                "cashier",
+                null,
+                Map.of("amount", 2500),
+                "Expense voucher recorded: VOU-2026-00001"
+        );
+        assertThat(log).isNotNull();
+        assertThat(log.getEntityName()).isEqualTo("EXPENSE");
+        assertThat(log.getEntityId()).isEqualTo("EXP-999");
+        assertThat(log.getPerformedBy()).isEqualTo("cashier");
+        assertThat(log.getIpAddress()).isNull();
+        assertThat(log.getChangeReason()).isEqualTo("Expense voucher recorded: VOU-2026-00001");
+        assertThat(log.getAfterState()).contains("2500");
+    }
+
+    @Test
+    @DisplayName("AdminController /audit-logs endpoint filters by entityName alone")
+    void testAuditLogsFilterByEntityNameAlone() throws Exception {
+        auditService.logAction("TEST_ENTITY", "1001", "CREATE", "admin", null, Map.of("k", "v"), "Test entry 1");
+        auditService.logAction("TEST_ENTITY", "1002", "CREATE", "admin", null, Map.of("k", "v"), "Test entry 2");
+        auditService.logAction("OTHER_ENTITY", "2001", "CREATE", "admin", null, Map.of("k", "v"), "Other entry");
+
+        mockMvc.perform(get("/api/v1/admin/audit-logs")
+                        .param("entityName", "TEST_ENTITY")
+                        .header("Authorization", "Bearer " + superAdminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content.length()").value(org.hamcrest.Matchers.greaterThanOrEqualTo(2)))
+                .andExpect(jsonPath("$.content[0].entityName").value("TEST_ENTITY"));
+    }
 }

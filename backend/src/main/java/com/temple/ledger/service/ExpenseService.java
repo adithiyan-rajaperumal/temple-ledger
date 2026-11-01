@@ -13,6 +13,7 @@ import com.temple.ledger.dto.outflow.ExpenseVoucherResponse;
 import com.temple.ledger.repository.AccountRepository;
 import com.temple.ledger.repository.ContractorRepository;
 import com.temple.ledger.repository.ExpenseRepository;
+import com.temple.ledger.repository.JournalEntryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,8 @@ public class ExpenseService {
     private final ContractorRepository contractorRepository;
     private final AccountRepository accountRepository;
     private final AccountingEngineService accountingEngineService;
+    private final JournalEntryRepository journalEntryRepository;
+    private final AuditService auditService;
 
     @Transactional
     public ExpenseVoucherResponse recordExpense(CreateExpenseRequest request, String username) {
@@ -164,6 +167,21 @@ public class ExpenseService {
                 .build();
 
         Expense savedExpense = expenseRepository.save(expense);
+
+        if (journalEntry != null) {
+            journalEntry.setReferenceId(savedExpense.getId());
+            journalEntryRepository.save(journalEntry);
+        }
+
+        auditService.logAction(
+                "EXPENSE",
+                savedExpense.getId().toString(),
+                "CREATE",
+                operator,
+                null,
+                request,
+                "Expense voucher recorded: " + savedExpense.getVoucherNo()
+        );
 
         // 6. Update contractor status if contract amount is fully fulfilled
         if (contractor != null && remainingRetentionBalance.compareTo(BigDecimal.ZERO) == 0) {

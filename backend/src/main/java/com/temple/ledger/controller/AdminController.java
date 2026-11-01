@@ -102,9 +102,13 @@ public class AdminController {
             @RequestParam(value = "entityId", required = false) String entityId,
             @PageableDefault(size = 50) Pageable pageable) {
 
-        if (entityName != null && entityId != null) {
+        if (entityName != null && !entityName.isBlank() && entityId != null && !entityId.isBlank()) {
             List<AuditLog> history = auditService.getAuditHistory(entityName, entityId);
             return ResponseEntity.ok(history);
+        }
+        if (entityName != null && !entityName.isBlank()) {
+            Page<AuditLog> page = auditService.findByEntityNameOrderByTimestampDesc(entityName, pageable);
+            return ResponseEntity.ok(page);
         }
         Page<AuditLog> page = auditService.listAllAuditLogs(pageable);
         return ResponseEntity.ok(page);

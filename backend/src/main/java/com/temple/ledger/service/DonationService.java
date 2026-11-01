@@ -44,6 +44,7 @@ public class DonationService {
     private final PledgeRepository pledgeRepository;
     private final AccountRepository accountRepository;
     private final AccountingEngineService accountingEngineService;
+    private final AuditService auditService;
 
     @Transactional
     public DonationReceiptResponse recordDonation(CreateDonationRequest request, String username) {
@@ -214,6 +215,16 @@ public class DonationService {
 
         Donation savedDonation = donationRepository.saveAndFlush(donation);
         journalEntry.setReferenceId(savedDonation.getId());
+
+        auditService.logAction(
+                "DONATION",
+                savedDonation.getId().toString(),
+                "CREATE",
+                operator,
+                null,
+                request,
+                "Donation recorded: " + savedDonation.getReceiptNo()
+        );
 
         // 6. Commitment & Installment Tracking
         BigDecimal cumulativePaid = null;

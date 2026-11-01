@@ -38,6 +38,7 @@ public class DriveManagementService {
     private final DriveRepository driveRepository;
     private final DriveFamilyAllocationRepository allocationRepository;
     private final PledgeRepository pledgeRepository;
+    private final AuditService auditService;
 
     public Drive createDrive(CreateDriveRequest request) {
         log.info("Creating drive with code: {}", request.getCode());
@@ -123,6 +124,13 @@ public class DriveManagementService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Allocation not found for drive: " + driveId + " and family: " + familyId));
 
+        Family family = allocation.getFamily();
+        UpdateAllocationRequest beforeState = UpdateAllocationRequest.builder()
+                .targetAmount(allocation.getTargetAmount())
+                .status(allocation.getStatus())
+                .notes(allocation.getNotes())
+                .build();
+
         if (request.getTargetAmount() != null) {
             allocation.setTargetAmount(request.getTargetAmount());
         }
@@ -133,7 +141,19 @@ public class DriveManagementService {
             allocation.setNotes(request.getNotes());
         }
 
-        return allocationRepository.save(allocation);
+        DriveFamilyAllocation saved = allocationRepository.save(allocation);
+
+        auditService.logAction(
+                "DRIVE_ALLOCATION",
+                saved.getId().toString(),
+                "UPDATE",
+                "admin",
+                beforeState,
+                request,
+                "Allocation updated for family: " + (family != null ? family.getFamilyCode() : familyId)
+        );
+
+        return saved;
     }
 
     @Transactional(readOnly = true)

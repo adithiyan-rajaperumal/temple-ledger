@@ -207,6 +207,8 @@
     "loadFailed": "Unable to load live dashboard data. Please verify connection and retry.",
     "familyPledges": "Family Drives Due",
     "contractorDue": "Contractor Liabilities",
+    "pledgesDue": "Pledges Due",
+    "contractorDues": "Contractor Dues",
     "viewFamilyDrives": "View Family Contributions",
     "viewFamilyDrivesDesc": "Track target fulfillment, installments, and pending commitments across village families",
     "browseTransactions": "Browse All Transactions",
