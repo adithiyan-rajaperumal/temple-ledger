@@ -1,38 +1,23 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Navbar from './components/Navbar';
 import PublicDashboard from './pages/PublicDashboard';
+import DriveProgressBoard from './pages/DriveProgressBoard';
+import MasterDataGrid from './pages/MasterDataGrid';
+import ReceiptModal from './components/ReceiptModal';
 
-// Drives Placeholder View (To be implemented in Task 11)
-function DrivesView() {
-  const { t } = useTranslation();
-  return (
-    <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-xs">
-      <h1 className="text-2xl font-bold text-slate-900">{t('nav.drives')}</h1>
-      <p className="mt-2 text-slate-600">{t('tables.allDrives')}</p>
-      <div className="mt-6 p-6 bg-amber-50 rounded-xl border border-amber-200 text-amber-900">
-        <p className="font-medium">
-          Ready for Task 11: Public Family Drive Status Board & Multi-Drive Installment Grid.
-        </p>
-      </div>
-    </div>
-  );
-}
+// Dedicated Public Receipt Page for direct verification links (e.g. from WhatsApp)
+function PublicReceiptPage() {
+  const { receiptNo } = useParams();
+  const navigate = useNavigate();
 
-// Transactions Placeholder View (To be implemented in Task 11)
-function TransactionsView() {
-  const { t } = useTranslation();
   return (
-    <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-xs">
-      <h1 className="text-2xl font-bold text-slate-900">{t('nav.transactions')}</h1>
-      <p className="mt-2 text-slate-600">{t('dashboard.recentTransactions')}</p>
-      <div className="mt-6 p-6 bg-blue-50 rounded-xl border border-blue-200 text-blue-900">
-        <p className="font-medium">
-          Ready for Task 11: Master Filterable Transaction Data Grid with CSV/PDF Export.
-        </p>
-      </div>
-    </div>
+    <ReceiptModal
+      isOpen={true}
+      receiptNo={receiptNo}
+      onClose={() => navigate('/transactions')}
+    />
   );
 }
 
@@ -73,8 +58,9 @@ export default function App() {
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <Routes>
             <Route path="/" element={<PublicDashboard />} />
-            <Route path="/drives" element={<DrivesView />} />
-            <Route path="/transactions" element={<TransactionsView />} />
+            <Route path="/drives" element={<DriveProgressBoard />} />
+            <Route path="/transactions" element={<MasterDataGrid />} />
+            <Route path="/receipts/:receiptNo" element={<PublicReceiptPage />} />
             <Route path="/login" element={<LoginView />} />
             <Route path="/admin" element={<AdminView />} />
           </Routes>
