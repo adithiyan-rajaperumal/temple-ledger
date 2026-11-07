@@ -1,6 +1,7 @@
-# Design Spec: Othalavadi Sri Jinalayam Customization, Password Management & Mobile-First Responsive Experience
+# Design Spec: 1008 ஸ்ரீ விருஷபநாத ஜிநாலயம் (Othalavadi) Customization, Password Management & Mobile-First Responsive Experience
 
 **Document Date:** 2026-11-08  
+**Temple Name:** 1008 ஸ்ரீ விருஷபநாத ஜிநாலயம், ஒத்தலவாடி (1008 Sri Vrishabhanatha Jinalayam, Othalavadi)  
 **Domain:** [https://othalavadi-jinalayam.in](https://othalavadi-jinalayam.in)  
 **Status:** Approved by User  
 
@@ -8,10 +9,10 @@
 
 ## 1. Executive Summary
 
-This specification formalizes the transformation of the Temple & Community Ledger into a dedicated, community-facing income and expense management portal for **Othalavadi Sri Jinalayam** (`https://othalavadi-jinalayam.in`).
+This specification formalizes the transformation of the Temple & Community Ledger into a dedicated, community-facing income and expense management portal for **1008 ஸ்ரீ விருஷபநாத ஜிநாலயம், ஒத்தலவாடி** (`https://othalavadi-jinalayam.in`).
 
 Key pillars:
-1. **Localization & Branding**: Eliminate confusing technical terms like "பேரேடு" (PEREDU) in favor of intuitive, conversational Tamil ("வரவு செலவு கணக்கு" / "முழு வரவு செலவு விவரம்"). Brand the application for Othalavadi Sri Jinalayam across all navigation headers, metadata, receipts, and public dashboards.
+1. **Localization & Branding**: Eliminate confusing technical terms like "பேரேடு" (PEREDU) in favor of intuitive, conversational Tamil ("வரவு செலவு கணக்கு" / "முழு வரவு செலவு விவரம்"). Brand the application for **1008 ஸ்ரீ விருஷபநாத ஜிநாலயம்** across all navigation headers, metadata, receipts, and public dashboards.
 2. **Mobile-First Responsive Design**: Optimize every page (Public Dashboard, Family Drives, Master Transactions Grid, Admin Forms, Receipt Modal) for smartphones (360px–414px viewports), with touch-friendly controls, responsive grids, and clean tabular-to-card presentations.
 3. **Login Security**: Eliminate all hardcoded demo/sample credential prompts (`admin` / `operator1`) from the login interface.
 4. **Super Admin Provisioning**: Configure Super Admin `adithiyan1` with password `Mahaveer2024@` directly into PostgreSQL via Flyway migration.
@@ -28,14 +29,14 @@ Key pillars:
 
 | Context | Previous English | Previous Tamil | Updated English | Updated Tamil (Natural Phrasing) |
 |---|---|---|---|---|
-| Application Title | Temple & Community Ledger | கோவில் & கிராம பேரேடு | Othalavadi Sri Jinalayam - Income & Expense Portal | ஒத்தலவாடி ஸ்ரீ ஜிநாலயம் - வரவு செலவு கணக்கு |
+| Application Title | Temple & Community Ledger | கோவில் & கிராம பேரேடு | 1008 Sri Vrishabhanatha Jinalayam - Income & Expense Portal | 1008 ஸ்ரீ விருஷபநாத ஜிநாலயம் - வரவு செலவு கணக்கு |
 | Subtitle / Web Link | Transparency Portal | வெளிப்படைத்தன்மை தளம் | Official Portal: othalavadi-jinalayam.in | othalavadi-jinalayam.in நேரலை கணக்கு |
 | Master Ledger Nav | Master Ledger | அனைத்து வரவு செலவுகள் | Master Transactions / All Entries | முழு வரவு செலவு விவரம் |
 | Digital Receipt Verification | Verified via Online Ledger | நேரலை பேரேடு மூலம் சரிபார்க்கப்பட்டது | Verified via othalavadi-jinalayam.in | othalavadi-jinalayam.in நேரலை கணக்கு மூலம் சரிபார்க்கப்பட்டது |
-| Receipt Temple Header | Arulmigu Temple Renovation Fund | அருள்மிகு திருக்கோவில் திருப்பணி நிதி | Sri Jinalayam Renovation Fund | ஒத்தலவாடி ஸ்ரீ ஜிநாலயம் திருப்பணி நிதி |
+| Receipt Temple Header | Arulmigu Temple Renovation Fund | அருள்மிகு திருக்கோவில் திருப்பணி நிதி | 1008 Sri Vrishabhanatha Jinalayam Renovation Fund | 1008 ஸ்ரீ விருஷபநாத ஜிநாலயம் திருப்பணி நிதி |
 
 ### 2.2 Metadata & Browser Title
-- `<title>` in `frontend/index.html`: `ஒத்தலவாடி ஸ்ரீ ஜிநாலயம் | Income & Expense Portal - othalavadi-jinalayam.in`
+- `<title>` in `frontend/index.html`: `1008 ஸ்ரீ விருஷபநாத ஜிநாலயம் | othalavadi-jinalayam.in`
 - Favicon and OpenGraph metadata reflecting the temple portal.
 
 ---
