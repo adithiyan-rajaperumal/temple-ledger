@@ -130,10 +130,18 @@ export default function ReceiptModal({
       .join(', ');
     const locationLine = locationParts ? `இடம் / Location: ${locationParts}\n` : '';
 
+    const bookDetails =
+      receipt?.bookNo || receipt?.manualReceiptNo
+        ? `புத்தக எண் / Book: ${receipt?.bookNo || '-'}, ரசீது / Slip: ${receipt?.manualReceiptNo || '-'}\n`
+        : receipt?.physicalBookReceiptNo
+        ? `புத்தக ரசீது / Manual Ref: ${receipt.physicalBookReceiptNo}\n`
+        : '';
+
     const message =
       `வணக்கம் ${donorName}, எங்கள் கோவில் திருப்பணிக்கு உங்கள் அன்பான நன்கொடை ${formattedAmount} வெற்றிகரமாக பெறப்பட்டது.\n` +
       `ரசீது எண்: ${effectiveRefNo}\n` +
       `தேதி: ${formattedDate}\n` +
+      bookDetails +
       locationLine +
       `\nGreetings ${donorName}, thank you for your generous contribution of ${formattedAmount} towards our temple renovation.\n` +
       `Receipt No: ${effectiveRefNo}\n` +
@@ -317,14 +325,33 @@ export default function ReceiptModal({
                   </span>
                 </div>
 
-                {receipt.physicalBookReceiptNo && (
+                {(receipt.bookNo || receipt.manualReceiptNo) ? (
+                  <>
+                    {receipt.bookNo && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">{t('receipt.bookNo')}:</span>
+                        <span className="font-mono font-medium text-slate-900">
+                          {receipt.bookNo}
+                        </span>
+                      </div>
+                    )}
+                    {receipt.manualReceiptNo && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">{t('receipt.receiptSlipNo')}:</span>
+                        <span className="font-mono font-medium text-slate-900">
+                          {receipt.manualReceiptNo}
+                        </span>
+                      </div>
+                    )}
+                  </>
+                ) : receipt.physicalBookReceiptNo ? (
                   <div className="flex justify-between">
                     <span className="text-slate-500">{t('forms.physicalReceiptNo')}:</span>
                     <span className="font-mono font-medium text-slate-900">
                       {receipt.physicalBookReceiptNo}
                     </span>
                   </div>
-                )}
+                ) : null}
 
                 {receipt.gpayTransactionId && (
                   <div className="flex justify-between">

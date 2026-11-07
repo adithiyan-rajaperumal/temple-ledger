@@ -371,6 +371,8 @@ public class ReportService {
                     .amount(d.getAmount())
                     .paymentMode(d.getPaymentMode().name())
                     .referenceNo(d.getReceiptNo())
+                    .bookNo(d.getBookNo())
+                    .manualReceiptNo(d.getManualReceiptNo())
                     .partyName(d.getDonorName())
                     .village(d.getVillage())
                     .area(d.getArea() != null ? d.getArea() : d.getVillage())
@@ -440,9 +442,11 @@ public class ReportService {
                         boolean matchState = item.getState() != null && item.getState().toLowerCase().contains(s);
                         boolean matchCountry = item.getCountry() != null && item.getCountry().toLowerCase().contains(s);
                         boolean matchRef = item.getReferenceNo() != null && item.getReferenceNo().toLowerCase().contains(s);
+                        boolean matchBook = item.getBookNo() != null && item.getBookNo().toLowerCase().contains(s);
+                        boolean matchManualReceipt = item.getManualReceiptNo() != null && item.getManualReceiptNo().toLowerCase().contains(s);
                         boolean matchNotes = item.getNotes() != null && item.getNotes().toLowerCase().contains(s);
 
-                        if (!matchParty && !matchVillage && !matchArea && !matchState && !matchCountry && !matchRef && !matchNotes) {
+                        if (!matchParty && !matchVillage && !matchArea && !matchState && !matchCountry && !matchRef && !matchNotes && !matchBook && !matchManualReceipt) {
                             return false;
                         }
                     }
@@ -530,6 +534,8 @@ public class ReportService {
                 .phone(d.getPhone())
                 .paymentMode(d.getPaymentMode())
                 .amount(d.getAmount())
+                .bookNo(d.getBookNo())
+                .manualReceiptNo(d.getManualReceiptNo())
                 .physicalBookReceiptNo(d.getPhysicalBookReceiptNo())
                 .gpayTransactionId(d.getGpayTransactionId())
                 .notes(d.getNotes())

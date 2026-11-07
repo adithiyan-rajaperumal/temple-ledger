@@ -67,7 +67,16 @@ public class DonationService {
 
         BigDecimal finalAmount;
         if (request.getPaymentMode() == PaymentMode.CASH) {
-            if (request.getPhysicalBookReceiptNo() == null || request.getPhysicalBookReceiptNo().isBlank()) {
+            boolean hasSeparate = (request.getBookNo() != null && !request.getBookNo().isBlank())
+                    && (request.getManualReceiptNo() != null && !request.getManualReceiptNo().isBlank());
+            boolean hasCombined = request.getPhysicalBookReceiptNo() != null && !request.getPhysicalBookReceiptNo().isBlank();
+            if (!hasSeparate && !hasCombined) {
+                if (request.getBookNo() == null || request.getBookNo().isBlank()) {
+                    throw new IllegalArgumentException("Physical donation book receipt number is mandatory for cash donations");
+                }
+                if (request.getManualReceiptNo() == null || request.getManualReceiptNo().isBlank()) {
+                    throw new IllegalArgumentException("Physical receipt slip number is mandatory for cash donations");
+                }
                 throw new IllegalArgumentException("Physical book receipt number is mandatory for cash donations");
             }
             if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
@@ -209,6 +218,8 @@ public class DonationService {
                 .phone(request.getPhone() != null ? request.getPhone() : (family != null ? family.getPhone() : null))
                 .paymentMode(request.getPaymentMode())
                 .amount(finalAmount)
+                .bookNo(request.getBookNo() != null ? request.getBookNo().trim() : null)
+                .manualReceiptNo(request.getManualReceiptNo() != null ? request.getManualReceiptNo().trim() : null)
                 .physicalBookReceiptNo(request.getPhysicalBookReceiptNo())
                 .gpayTransactionId(request.getGpayTransactionId() != null ? request.getGpayTransactionId().trim() : null)
                 .notes(request.getNotes())
@@ -336,6 +347,8 @@ public class DonationService {
                 .phone(savedDonation.getPhone())
                 .paymentMode(savedDonation.getPaymentMode())
                 .amount(savedDonation.getAmount())
+                .bookNo(savedDonation.getBookNo())
+                .manualReceiptNo(savedDonation.getManualReceiptNo())
                 .physicalBookReceiptNo(savedDonation.getPhysicalBookReceiptNo())
                 .gpayTransactionId(savedDonation.getGpayTransactionId())
                 .notes(savedDonation.getNotes())

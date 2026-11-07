@@ -491,4 +491,33 @@ class DonationServiceTest {
         var areas = donationService.searchAreas("Gandhi");
         assertThat(areas).contains("Gandhinagar");
     }
+
+    @Test
+    @DisplayName("Record Cash donation with separate Book No and Receipt Slip No")
+    void testRecordCashDonationWithBookAndReceiptNumber() {
+        CreateDonationRequest request = CreateDonationRequest.builder()
+                .donationDate(LocalDate.of(2026, 3, 2))
+                .donorName("Kandasamy")
+                .paymentMode(PaymentMode.CASH)
+                .amount(new BigDecimal("2500.00"))
+                .bookNo("B-04")
+                .manualReceiptNo("RCT-045")
+                .build();
+
+        DonationReceiptResponse res = donationService.recordDonation(request, "admin");
+        assertThat(res.getBookNo()).isEqualTo("B-04");
+        assertThat(res.getManualReceiptNo()).isEqualTo("RCT-045");
+        assertThat(res.getPhysicalBookReceiptNo()).isEqualTo("Book B-04 / Receipt RCT-045");
+
+        // Missing both book and receipt number should fail
+        CreateDonationRequest invalid = CreateDonationRequest.builder()
+                .donationDate(LocalDate.of(2026, 3, 2))
+                .donorName("Invalid Donor")
+                .paymentMode(PaymentMode.CASH)
+                .amount(new BigDecimal("1000.00"))
+                .build();
+
+        assertThatThrownBy(() -> donationService.recordDonation(invalid, "admin"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
 }

@@ -154,6 +154,8 @@ export default function MasterDataGrid() {
         'Date',
         'Flow Type',
         'Reference No',
+        'Book No',
+        'Receipt Slip No',
         'Category (EN)',
         'Category (TA)',
         'Party / Payee / Donor',
@@ -169,6 +171,8 @@ export default function MasterDataGrid() {
         item.date || '',
         item.flowType || '',
         `"${(item.referenceNo || '').replace(/"/g, '""')}"`,
+        `"${(item.bookNo || '').replace(/"/g, '""')}"`,
+        `"${(item.manualReceiptNo || '').replace(/"/g, '""')}"`,
         `"${(item.category || '').replace(/"/g, '""')}"`,
         `"${(item.categoryTa || '').replace(/"/g, '""')}"`,
         `"${(item.partyName || '').replace(/"/g, '""')}"`,
@@ -343,7 +347,17 @@ export default function MasterDataGrid() {
 
                           {/* Reference Number */}
                           <td className="py-3 px-4 font-mono font-medium text-slate-900 whitespace-nowrap">
-                            {txn.referenceNo}
+                            <div>{txn.referenceNo}</div>
+                            {(txn.bookNo || txn.manualReceiptNo) && (
+                              <div className="text-[10px] text-slate-400 font-sans">
+                                {[
+                                  txn.bookNo && `Bk:${txn.bookNo}`,
+                                  txn.manualReceiptNo && `Slp:${txn.manualReceiptNo}`,
+                                ]
+                                  .filter(Boolean)
+                                  .join(' ')}
+                              </div>
+                            )}
                           </td>
 
                           {/* Localized Category */}
