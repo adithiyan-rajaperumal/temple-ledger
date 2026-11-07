@@ -5,6 +5,8 @@ import Navbar from './components/Navbar';
 import PublicDashboard from './pages/PublicDashboard';
 import DriveProgressBoard from './pages/DriveProgressBoard';
 import MasterDataGrid from './pages/MasterDataGrid';
+import IncomeLedger from './pages/IncomeLedger';
+import ExpenseLedger from './pages/ExpenseLedger';
 import ReceiptModal from './components/ReceiptModal';
 
 import Login from './pages/Login';
@@ -43,6 +45,8 @@ export default function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<PublicDashboard />} />
+            <Route path="/income" element={<IncomeLedger />} />
+            <Route path="/expenses" element={<ExpenseLedger />} />
             <Route path="/drives" element={<DriveProgressBoard />} />
             <Route path="/transactions" element={<MasterDataGrid />} />
             <Route path="/receipts/:receiptNo" element={<PublicReceiptPage />} />

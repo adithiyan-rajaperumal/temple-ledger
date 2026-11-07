@@ -13,7 +13,9 @@ import {
   LogOut,
   ShieldCheck,
   UserCheck,
-  KeyRound
+  KeyRound,
+  TrendingUp,
+  TrendingDown
 } from 'lucide-react';
 import { changeLanguage } from '../i18n';
 import { isAuthenticated, getCurrentUser, isSuperAdmin, logout } from '../services/auth';
@@ -86,18 +88,26 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-2">
+          <nav className="hidden md:flex items-center space-x-1.5 lg:space-x-2">
             <NavLink to="/" end className={navLinkClass}>
-              <LayoutDashboard className="w-4 h-4 mr-2" />
+              <LayoutDashboard className="w-4 h-4 mr-1.5" />
               {t('nav.dashboard')}
             </NavLink>
+            <NavLink to="/income" className={navLinkClass}>
+              <TrendingUp className="w-4 h-4 mr-1.5 text-emerald-600" />
+              <span>{isTamil ? 'வரவுகள்' : 'Income'}</span>
+            </NavLink>
+            <NavLink to="/expenses" className={navLinkClass}>
+              <TrendingDown className="w-4 h-4 mr-1.5 text-rose-600" />
+              <span>{isTamil ? 'செலவுகள்' : 'Expenses'}</span>
+            </NavLink>
             <NavLink to="/drives" className={navLinkClass}>
-              <Users className="w-4 h-4 mr-2" />
+              <Users className="w-4 h-4 mr-1.5 text-amber-600" />
               {t('nav.drives')}
             </NavLink>
             <NavLink to="/transactions" className={navLinkClass}>
-              <FileSpreadsheet className="w-4 h-4 mr-2" />
-              {t('nav.transactions')}
+              <FileSpreadsheet className="w-4 h-4 mr-1.5 text-slate-500" />
+              <span>{isTamil ? 'முழு கணக்கு' : 'Ledger'}</span>
             </NavLink>
 
             {/* Authenticated Admin Tab */}
@@ -220,11 +230,27 @@ export default function Navbar() {
             {t('nav.dashboard')}
           </NavLink>
           <NavLink
+            to="/income"
+            onClick={() => setMobileMenuOpen(false)}
+            className={mobileNavLinkClass}
+          >
+            <TrendingUp className="w-5 h-5 mr-3 text-emerald-600" />
+            <span>{isTamil ? 'வரவுகள் பேரேடு' : 'Income Ledger'}</span>
+          </NavLink>
+          <NavLink
+            to="/expenses"
+            onClick={() => setMobileMenuOpen(false)}
+            className={mobileNavLinkClass}
+          >
+            <TrendingDown className="w-5 h-5 mr-3 text-rose-600" />
+            <span>{isTamil ? 'செலவுகள் பேரேடு' : 'Expenses Ledger'}</span>
+          </NavLink>
+          <NavLink
             to="/drives"
             onClick={() => setMobileMenuOpen(false)}
             className={mobileNavLinkClass}
           >
-            <Users className="w-5 h-5 mr-3 text-slate-500" />
+            <Users className="w-5 h-5 mr-3 text-amber-600" />
             {t('nav.drives')}
           </NavLink>
           <NavLink
@@ -233,7 +259,7 @@ export default function Navbar() {
             className={mobileNavLinkClass}
           >
             <FileSpreadsheet className="w-5 h-5 mr-3 text-slate-500" />
-            {t('nav.transactions')}
+            <span>{isTamil ? 'முழு வரவு செலவு கணக்கு' : 'Complete Ledger'}</span>
           </NavLink>
 
           {authed && (

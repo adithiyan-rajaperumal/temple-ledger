@@ -200,7 +200,38 @@
     "page": "Page",
     "of": "of",
     "prev": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "entries": "entries",
+    "columns": "Columns",
+    "toggleColumns": "Toggle Columns",
+    "selectAll": "Select All",
+    "unselectAll": "Unselect All",
+    "exportExcel": "Export Excel",
+    "filters": "Filters",
+    "none": "None",
+    "totalFiltered": "Total Sum",
+    "loading": "Loading...",
+    "emptyHint": "Try clearing some column filters or changing your search terms.",
+    "clearAllFilters": "Clear all active filters",
+    "rowsPerPage": "Rows per page",
+    "sortAscNum": "Sort Smallest to Largest",
+    "sortDescNum": "Sort Largest to Smallest",
+    "sortAscDate": "Sort Oldest to Newest",
+    "sortDescDate": "Sort Newest to Oldest",
+    "sortAsc": "Sort A to Z",
+    "sortDesc": "Sort Z to A",
+    "numberRange": "Amount Range (₹)",
+    "dateRange": "Date Range",
+    "from": "From",
+    "to": "To",
+    "values": "Filter by Value",
+    "searchValues": "Search values...",
+    "noMatchingValues": "No matches",
+    "clear": "Clear",
+    "cancel": "Cancel",
+    "apply": "Apply",
+    "clearAll": "Reset All",
+    "refresh": "Refresh"
   },
   "dashboard": {
     "title": "Community Transparency Portal",
@@ -365,7 +396,9 @@
     "enterReceiptSlipNo": "Receipt Slip Number is required for cash collections",
     "enterGPayTxn": "GPay Transaction ID / UTR is mandatory for online payments",
     "enterItemDesc": "Material item description is required",
-    "enterValidQtyRate": "Please enter valid quantity and unit rate"
+    "enterValidQtyRate": "Please enter valid quantity and unit rate",
+    "donorMatchedFamily": "Devotee is registered in Village Family Directory.",
+    "switchToFamilyDrive": "Link to Family Drive / கிராம வரி"
   },
   "expense": {
     "selectCategory": "Expenditure Category / செலவு வகை",
@@ -391,7 +424,8 @@
     "activeDrive": "Select Drive",
     "initializeAllocations": "Populate from Master Family List",
     "searchFamily": "Search family code or name...",
-    "selectFamily": "Select Family / குடும்பம்"
+    "selectFamily": "Select Family / குடும்பம்",
+    "familyCommitmentStatus": "Family Commitment Status for Selected Drive"
   },
   "pledge": {
     "recordNew": "Record Devotee Pledge"

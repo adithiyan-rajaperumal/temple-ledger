@@ -15,13 +15,15 @@ import {
   Building,
   HeartHandshake,
   Printer,
-  Sparkles
+  Sparkles,
+  Target
 } from 'lucide-react';
 import {
   recordDonation,
   searchDonors,
   searchAreas,
   getPublicDrives,
+  getDriveFamilyProgress,
   getAdminFamilies,
   getPledges
 } from '../../services/api';
@@ -83,6 +85,9 @@ export default function DonationEntry() {
   const [selectedDriveId, setSelectedDriveId] = useState('');
   const [selectedFamilyId, setSelectedFamilyId] = useState('');
   const [selectedPledgeId, setSelectedPledgeId] = useState('');
+  const [familyDriveCommitment, setFamilyDriveCommitment] = useState(null);
+  const [loadingCommitment, setLoadingCommitment] = useState(false);
+  const [detectedFamilyId, setDetectedFamilyId] = useState(null);
 
   // Lookups data
   const [drives, setDrives] = useState([]);
@@ -204,11 +209,52 @@ export default function DonationEntry() {
       setState(suggestion.state);
     }
     if (suggestion.familyId) {
-      setSelectedFamilyId(suggestion.familyId);
-      setDonorSource('VILLAGE_FAMILY_DRIVE');
+      setDetectedFamilyId(suggestion.familyId);
+      if (donorSource === 'VILLAGE_FAMILY_DRIVE') {
+        setSelectedFamilyId(suggestion.familyId);
+      }
     }
     setShowDonorDropdown(false);
   };
+
+  // Fetch family's commitment status for selected drive
+  useEffect(() => {
+    if (donorSource !== 'VILLAGE_FAMILY_DRIVE' || !selectedDriveId || !selectedFamilyId) {
+      setFamilyDriveCommitment(null);
+      return;
+    }
+
+    let isMounted = true;
+    async function fetchCommitment() {
+      try {
+        setLoadingCommitment(true);
+        const progress = await getDriveFamilyProgress(selectedDriveId);
+        if (!isMounted) return;
+        const fam = progress?.families?.find((f) => f.familyId === selectedFamilyId);
+        if (fam) {
+          setFamilyDriveCommitment(fam);
+        } else {
+          const currentDrive = drives.find((d) => (d.id || d.driveId) === selectedDriveId);
+          const defaultTarget = currentDrive?.defaultTargetPerFamily || 10000;
+          setFamilyDriveCommitment({
+            targetAmount: defaultTarget,
+            paidAmount: 0,
+            balanceAmount: defaultTarget,
+            status: 'PENDING',
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch family drive commitment:', err);
+      } finally {
+        if (isMounted) setLoadingCommitment(false);
+      }
+    }
+
+    fetchCommitment();
+    return () => {
+      isMounted = false;
+    };
+  }, [donorSource, selectedDriveId, selectedFamilyId, drives]);
 
   // Debounced area search for autocomplete
   useEffect(() => {
@@ -288,6 +334,8 @@ export default function DonationEntry() {
     setApproximateUnitRate('');
     setSelectedFamilyId('');
     setSelectedPledgeId('');
+    setFamilyDriveCommitment(null);
+    setDetectedFamilyId(null);
     setErrorMessage('');
     setDonorSuggestions([]);
     setShowDonorDropdown(false);
@@ -608,6 +656,116 @@ export default function DonationEntry() {
                   ))}
                 </select>
               </div>
+            </div>
+          )}
+
+          {/* Live Family Commitment Status Card */}
+          {donorSource === 'VILLAGE_FAMILY_DRIVE' && selectedFamilyId && (
+            <div className="mt-3 p-4 bg-amber-50/80 rounded-2xl border border-amber-300 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Target className="w-4 h-4 text-amber-700" />
+                  <span className="font-bold text-xs sm:text-sm text-amber-950">
+                    {t('drive.familyCommitmentStatus', 'Family Commitment Status for Selected Drive')}
+                  </span>
+                </div>
+                {familyDriveCommitment && (
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                      familyDriveCommitment.status === 'PAID'
+                        ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                        : familyDriveCommitment.status === 'PARTIAL'
+                        ? 'bg-amber-200 text-amber-900 border border-amber-400'
+                        : 'bg-rose-100 text-rose-900 border border-rose-300'
+                    }`}
+                  >
+                    {familyDriveCommitment.status === 'PAID'
+                      ? 'முழுவதும் செலுத்தப்பட்டது (PAID IN FULL)'
+                      : familyDriveCommitment.status === 'PARTIAL'
+                      ? 'தவணை முறையில் உள்ளது (PARTIALLY PAID)'
+                      : 'தொடங்கப்படவில்லை (PENDING)'}
+                  </span>
+                )}
+              </div>
+
+              {loadingCommitment ? (
+                <div className="py-2 text-xs text-slate-500 animate-pulse">Calculating family balance...</div>
+              ) : familyDriveCommitment ? (
+                <>
+                  <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                    <div className="bg-white p-2.5 rounded-xl border border-amber-200">
+                      <span className="text-slate-400 block text-[11px] font-semibold">{t('tables.target', 'Target')}</span>
+                      <span className="font-bold text-slate-900 text-sm block mt-0.5 font-mono">
+                        {formatCurrency(familyDriveCommitment.targetAmount)}
+                      </span>
+                    </div>
+                    <div className="bg-white p-2.5 rounded-xl border border-amber-200">
+                      <span className="text-slate-400 block text-[11px] font-semibold">{t('tables.paid', 'Paid So Far')}</span>
+                      <span className="font-bold text-emerald-700 text-sm block mt-0.5 font-mono">
+                        {formatCurrency(familyDriveCommitment.paidAmount)}
+                      </span>
+                    </div>
+                    <div className="bg-white p-2.5 rounded-xl border border-amber-200">
+                      <span className="text-slate-400 block text-[11px] font-semibold">{t('tables.due', 'Remaining Due')}</span>
+                      <span className="font-bold text-rose-700 text-sm block mt-0.5 font-mono">
+                        {formatCurrency(familyDriveCommitment.balanceAmount)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Quick Fill Buttons */}
+                  {familyDriveCommitment.balanceAmount > 0 ? (
+                    <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                      <span className="font-semibold text-slate-600">Quick Fill:</span>
+                      <button
+                        type="button"
+                        onClick={() => setAmount(String(familyDriveCommitment.balanceAmount))}
+                        className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg transition shadow-2xs"
+                      >
+                        Pay Full Due ({formatCurrency(familyDriveCommitment.balanceAmount)})
+                      </button>
+                      {familyDriveCommitment.balanceAmount > 2000 && (
+                        <button
+                          type="button"
+                          onClick={() => setAmount(String(Math.round(familyDriveCommitment.balanceAmount / 2)))}
+                          className="px-2.5 py-1 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 font-semibold rounded-lg transition"
+                        >
+                          Pay Half Due ({formatCurrency(Math.round(familyDriveCommitment.balanceAmount / 2))})
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-2.5 bg-emerald-100/70 border border-emerald-300 rounded-xl text-emerald-900 text-xs font-semibold flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span>
+                        இந்த குடும்பம் இந்த திட்டத்திற்கான முழு இலக்கு தொகையையும் செலுத்திவிட்டது! (This family has completed the full target for this drive.)
+                      </span>
+                    </div>
+                  )}
+                </>
+              ) : null}
+            </div>
+          )}
+
+          {/* Devotee Belongs to Family Directory Banner */}
+          {detectedFamilyId && donorSource === 'GENERAL_PUBLIC' && (
+            <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between gap-2 text-xs text-amber-900">
+              <div className="flex items-center gap-2">
+                <Building className="w-4 h-4 text-amber-700 flex-shrink-0" />
+                <span>
+                  {t('donation.donorMatchedFamily', 'Devotee is registered in Village Family Directory.')}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setDonorSource('VILLAGE_FAMILY_DRIVE');
+                  setSelectedFamilyId(detectedFamilyId);
+                }}
+                className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg shadow-2xs transition whitespace-nowrap"
+              >
+                {t('donation.switchToFamilyDrive', 'Link to Family Drive / கிராம வரி')}
+              </button>
             </div>
           )}
 

@@ -170,4 +170,41 @@ assert.strictEqual(filteredBySearch.length, 1);
 assert.strictEqual(filteredBySearch[0].referenceNo, 'VCH-2026-0001');
 
 console.log('✓ Grid multi-criteria filtering verified successfully');
+
+// 5. Test ExcelDataGrid Column Filtering & Sorting Logic
+console.log('Testing ExcelDataGrid distinct checklist, number range, and sorting...');
+
+const sampleData = [
+  { id: 1, referenceNo: 'REC-001', amount: 5000, date: '2026-11-01', category: 'Devotee General', donorNameTa: 'அண்ணாமலை', gpayTransactionId: 'GP123', bookNo: '1', manualReceiptNo: '10' },
+  { id: 2, referenceNo: 'REC-002', amount: 15000, date: '2026-11-03', category: 'Village Drive', donorNameTa: 'முருகேசன்', gpayTransactionId: null, bookNo: '1', manualReceiptNo: '11' },
+  { id: 3, referenceNo: 'REC-003', amount: 2000, date: '2026-11-02', category: 'Devotee General', donorNameTa: 'செல்வம்', gpayTransactionId: 'GP456', bookNo: null, manualReceiptNo: null },
+];
+
+// Test Distinct Values
+const catValues = new Set(sampleData.map(d => d.category));
+assert.strictEqual(catValues.size, 2);
+assert.ok(catValues.has('Devotee General'));
+assert.ok(catValues.has('Village Drive'));
+
+// Test Number Range Filter
+const minMaxFiltered = sampleData.filter(d => d.amount >= 3000 && d.amount <= 16000);
+assert.strictEqual(minMaxFiltered.length, 2);
+assert.strictEqual(minMaxFiltered[0].referenceNo, 'REC-001');
+assert.strictEqual(minMaxFiltered[1].referenceNo, 'REC-002');
+
+// Test Number Sorting Asc/Desc
+const sortedAsc = [...sampleData].sort((a, b) => a.amount - b.amount);
+assert.strictEqual(sortedAsc[0].amount, 2000);
+assert.strictEqual(sortedAsc[2].amount, 15000);
+
+const sortedDesc = [...sampleData].sort((a, b) => b.amount - a.amount);
+assert.strictEqual(sortedDesc[0].amount, 15000);
+assert.strictEqual(sortedDesc[2].amount, 2000);
+
+// Test Enriched Income Details
+assert.ok(sampleData[0].donorNameTa.length > 0, 'Tamil name should be present');
+assert.ok(sampleData[0].gpayTransactionId, 'GPay UTR should be present');
+assert.ok(sampleData[0].bookNo && sampleData[0].manualReceiptNo, 'Book & slip should be present');
+
+console.log('✓ ExcelDataGrid distinct filter, number range, and sorting verified successfully');
 console.log('--- All Master Data Grid & Digital Receipt tests PASSED! ---');

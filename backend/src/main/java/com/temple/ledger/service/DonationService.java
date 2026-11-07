@@ -2,6 +2,7 @@ package com.temple.ledger.service;
 
 import com.temple.ledger.domain.accounting.Account;
 import com.temple.ledger.domain.accounting.JournalEntry;
+import com.temple.ledger.domain.community.CommitmentStatus;
 import com.temple.ledger.domain.community.Drive;
 import com.temple.ledger.domain.community.DriveFamilyAllocation;
 import com.temple.ledger.domain.community.Family;
@@ -315,13 +316,22 @@ public class DonationService {
             pledgeRepository.save(pledge);
             pledgeStatus = pledge.getStatus();
         } else if (drive != null && family != null) {
-            BigDecimal targetAmount = drive.getDefaultTargetPerFamily();
             Optional<DriveFamilyAllocation> allocOpt = allocationRepository.findByDriveIdAndFamilyId(drive.getId(), family.getId());
+            DriveFamilyAllocation alloc;
             if (allocOpt.isPresent()) {
-                targetAmount = allocOpt.get().getTargetAmount();
+                alloc = allocOpt.get();
+            } else {
+                alloc = allocationRepository.save(DriveFamilyAllocation.builder()
+                        .drive(drive)
+                        .family(family)
+                        .targetAmount(drive.getDefaultTargetPerFamily() != null ? drive.getDefaultTargetPerFamily() : BigDecimal.ZERO)
+                        .status(CommitmentStatus.PARTICIPATING)
+                        .build());
             }
 
+            BigDecimal targetAmount = alloc.getTargetAmount() != null ? alloc.getTargetAmount() : BigDecimal.ZERO;
             BigDecimal totalPaid = donationRepository.sumAmountByDriveIdAndFamilyId(drive.getId(), family.getId());
+            if (totalPaid == null) totalPaid = BigDecimal.ZERO;
             BigDecimal pendingDue = targetAmount.subtract(totalPaid).max(BigDecimal.ZERO);
 
             cumulativePaid = totalPaid;

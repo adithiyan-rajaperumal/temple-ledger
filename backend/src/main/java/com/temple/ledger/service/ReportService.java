@@ -29,6 +29,7 @@ import com.temple.ledger.repository.DonationRepository;
 import com.temple.ledger.repository.DriveFamilyAllocationRepository;
 import com.temple.ledger.repository.DriveRepository;
 import com.temple.ledger.repository.ExpenseRepository;
+import com.temple.ledger.repository.FamilyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -62,6 +63,7 @@ public class ReportService {
     private final DriveRepository driveRepository;
     private final DriveFamilyAllocationRepository allocationRepository;
     private final ContractorRepository contractorRepository;
+    private final FamilyRepository familyRepository;
 
     /**
      * Aggregates key financial KPI metrics for public transparency dashboard.
@@ -247,11 +249,27 @@ public class ReportService {
     /**
      * Returns detailed drive progress with breakdown of family fulfillment status.
      */
+    @Transactional
     public PublicDriveProgressResponse getPublicDriveProgress(UUID driveId) {
         Drive drive = driveRepository.findById(driveId)
                 .orElseThrow(() -> new ResourceNotFoundException("Drive not found with ID: " + driveId));
 
         List<DriveFamilyAllocation> allocations = allocationRepository.findByDriveId(driveId);
+        if (allocations.isEmpty()) {
+            List<Family> activeFamilies = familyRepository.findByIsActiveTrue();
+            if (!activeFamilies.isEmpty()) {
+                List<DriveFamilyAllocation> newAllocations = new ArrayList<>();
+                for (Family fam : activeFamilies) {
+                    newAllocations.add(DriveFamilyAllocation.builder()
+                            .drive(drive)
+                            .family(fam)
+                            .targetAmount(drive.getDefaultTargetPerFamily() != null ? drive.getDefaultTargetPerFamily() : BigDecimal.ZERO)
+                            .status(CommitmentStatus.PARTICIPATING)
+                            .build());
+                }
+                allocations = allocationRepository.saveAll(newAllocations);
+            }
+        }
         List<FamilyDriveProgressDto> familyDtos = new ArrayList<>();
 
         BigDecimal totalTarget = BigDecimal.ZERO;
@@ -362,6 +380,10 @@ public class ReportService {
                 catTa = "பொது நன்கொடை";
             }
 
+            InKindDonation inKind = d.getInKindDonation();
+            Family fam = d.getFamily();
+            Drive drive = d.getDrive();
+
             allItems.add(TransactionGridItemResponse.builder()
                     .id(d.getId())
                     .date(d.getDonationDate())
@@ -373,12 +395,32 @@ public class ReportService {
                     .referenceNo(d.getReceiptNo())
                     .bookNo(d.getBookNo())
                     .manualReceiptNo(d.getManualReceiptNo())
+                    .physicalBookReceiptNo(d.getPhysicalBookReceiptNo())
+                    .gpayTransactionId(d.getGpayTransactionId())
                     .partyName(d.getDonorName())
-                    .village(d.getVillage())
+                    .donorNameTa(d.getDonorNameTa())
+                    .phone(d.getPhone())
+                    .doorNo(fam != null ? fam.getDoorNo() : null)
+                    .street(fam != null ? fam.getStreet() : null)
+                    .village(d.getVillage() != null ? d.getVillage() : (fam != null ? fam.getVillage() : null))
                     .area(d.getArea() != null ? d.getArea() : d.getVillage())
                     .state(d.getState() != null ? d.getState() : "Tamil Nadu")
                     .country(d.getCountry() != null ? d.getCountry() : "India")
+                    .familyCode(fam != null ? fam.getFamilyCode() : null)
+                    .headName(fam != null ? fam.getHeadName() : null)
+                    .headNameTa(fam != null ? fam.getHeadNameTa() : null)
+                    .driveCode(drive != null ? drive.getCode() : null)
+                    .driveName(drive != null ? drive.getName() : null)
+                    .driveNameTa(drive != null ? drive.getNameTa() : null)
+                    .inKindItemCategory(inKind != null ? inKind.getItemCategory() : null)
+                    .inKindItemDescription(inKind != null ? inKind.getItemDescription() : null)
+                    .inKindQuantity(inKind != null ? inKind.getQuantity() : null)
+                    .inKindUnit(inKind != null ? inKind.getUnit() : null)
+                    .inKindApproximateUnitRate(inKind != null ? inKind.getApproximateUnitRate() : null)
+                    .inKindTotalEstimatedValue(inKind != null ? inKind.getTotalEstimatedValue() : null)
                     .notes(d.getNotes())
+                    .createdBy(d.getCreatedBy())
+                    .createdAt(d.getCreatedAt())
                     .build());
         }
 
@@ -394,8 +436,15 @@ public class ReportService {
                     .paymentMode(e.getPaymentMode().name())
                     .referenceNo(e.getVoucherNo())
                     .partyName(e.getPaidTo())
+                    .invoiceBillNo(e.getInvoiceBillNo())
+                    .contractorName(e.getContractor() != null ? e.getContractor().getContractorName() : null)
+                    .contractMilestoneDesc(e.getContractMilestoneDesc())
+                    .volunteerName(e.getVolunteerName())
+                    .travelModeVehicle(e.getTravelModeVehicle())
                     .village(null)
                     .notes(e.getDescription())
+                    .createdBy(e.getCreatedBy())
+                    .createdAt(e.getCreatedAt())
                     .build());
         }
 
@@ -433,20 +482,29 @@ public class ReportService {
                         return false;
                     }
 
-                    // Search text filter across partyName, village, area, state, country, referenceNo, notes
+                    // Search text filter across partyName, donorNameTa, phone, familyCode, village, area, street, referenceNo, bookNo, manualReceiptNo, gpayTransactionId, invoiceBillNo, contractorName, volunteerName, notes, createdBy
                     if (search != null && !search.isBlank()) {
                         String s = search.toLowerCase().trim();
                         boolean matchParty = item.getPartyName() != null && item.getPartyName().toLowerCase().contains(s);
+                        boolean matchPartyTa = item.getDonorNameTa() != null && item.getDonorNameTa().toLowerCase().contains(s);
+                        boolean matchPhone = item.getPhone() != null && item.getPhone().toLowerCase().contains(s);
+                        boolean matchFamilyCode = item.getFamilyCode() != null && item.getFamilyCode().toLowerCase().contains(s);
                         boolean matchVillage = item.getVillage() != null && item.getVillage().toLowerCase().contains(s);
                         boolean matchArea = item.getArea() != null && item.getArea().toLowerCase().contains(s);
-                        boolean matchState = item.getState() != null && item.getState().toLowerCase().contains(s);
-                        boolean matchCountry = item.getCountry() != null && item.getCountry().toLowerCase().contains(s);
+                        boolean matchStreet = item.getStreet() != null && item.getStreet().toLowerCase().contains(s);
                         boolean matchRef = item.getReferenceNo() != null && item.getReferenceNo().toLowerCase().contains(s);
                         boolean matchBook = item.getBookNo() != null && item.getBookNo().toLowerCase().contains(s);
                         boolean matchManualReceipt = item.getManualReceiptNo() != null && item.getManualReceiptNo().toLowerCase().contains(s);
+                        boolean matchGPay = item.getGpayTransactionId() != null && item.getGpayTransactionId().toLowerCase().contains(s);
+                        boolean matchInvoice = item.getInvoiceBillNo() != null && item.getInvoiceBillNo().toLowerCase().contains(s);
+                        boolean matchContractor = item.getContractorName() != null && item.getContractorName().toLowerCase().contains(s);
+                        boolean matchVolunteer = item.getVolunteerName() != null && item.getVolunteerName().toLowerCase().contains(s);
                         boolean matchNotes = item.getNotes() != null && item.getNotes().toLowerCase().contains(s);
+                        boolean matchCreatedBy = item.getCreatedBy() != null && item.getCreatedBy().toLowerCase().contains(s);
 
-                        if (!matchParty && !matchVillage && !matchArea && !matchState && !matchCountry && !matchRef && !matchNotes && !matchBook && !matchManualReceipt) {
+                        if (!matchParty && !matchPartyTa && !matchPhone && !matchFamilyCode && !matchVillage && !matchArea
+                                && !matchStreet && !matchRef && !matchNotes && !matchBook && !matchManualReceipt
+                                && !matchGPay && !matchInvoice && !matchContractor && !matchVolunteer && !matchCreatedBy) {
                             return false;
                         }
                     }
