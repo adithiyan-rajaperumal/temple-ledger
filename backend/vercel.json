@@ -1,4 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "container"
+  "framework": "container",
+  "functions": {
+    "Dockerfile": {
+      "maxDuration": 60
+    }
+  }
 }
