@@ -146,7 +146,7 @@ assert.strictEqual(i18next.t('categories.renovationMaterials'), 'Renovation Mate
 
 // Switch to Tamil
 await i18next.changeLanguage('ta');
-assert.strictEqual(i18next.t('appTitle'), '1008 ஸ்ரீ விருஷபநாத ஜிநாலயம், ஒத்தலவாடி');
+assert.strictEqual(i18next.t('appTitle'), '1008 ஸ்ரீ விருஷபநாத ஜிநாலயம், ஓதலவாடி');
 assert.strictEqual(i18next.t('metrics.spendableCash'), 'கையிருப்பு ரொக்கம் & வங்கி இருப்பு');
 assert.strictEqual(i18next.t('categories.renovationMaterials'), 'கட்டுமான பொருட்கள்');
 
