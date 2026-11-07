@@ -1,18 +1,21 @@
 spring:
   application:
     name: temple-ledger
+  main:
+    lazy-initialization: true
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/temple_ledger}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      minimum-idle: 1
+      maximum-pool-size: 5
+      connection-timeout: 20000
+      initialization-fail-timeout: 30000
   jpa:
     hibernate:
-      ddl-auto: validate
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
+      ddl-auto: none
     open-in-view: false
   flyway:
     enabled: true
