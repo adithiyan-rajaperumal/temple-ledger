@@ -45,7 +45,7 @@ EXPOSE 8080
 
 # Configure JVM container memory flags and entropy
 ENV PORT=8080 \
-    JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
+    JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Djava.security.egd=file:/dev/./urandom"
 
 # Health check probe against public summary endpoint
 HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
