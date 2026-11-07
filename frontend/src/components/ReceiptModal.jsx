@@ -138,15 +138,15 @@ export default function ReceiptModal({
         : '';
 
     const message =
-      `வணக்கம் ${donorName}, எங்கள் கோவில் திருப்பணிக்கு உங்கள் அன்பான நன்கொடை ${formattedAmount} வெற்றிகரமாக பெறப்பட்டது.\n` +
+      `வணக்கம் ${donorName}, 1008 ஸ்ரீ விருஷபநாத ஜிநாலயம், ஒத்தலவாடி திருப்பணிக்கு உங்கள் அன்பான நன்கொடை ${formattedAmount} வெற்றிகரமாக பெறப்பட்டது.\n` +
       `ரசீது எண்: ${effectiveRefNo}\n` +
       `தேதி: ${formattedDate}\n` +
       bookDetails +
       locationLine +
-      `\nGreetings ${donorName}, thank you for your generous contribution of ${formattedAmount} towards our temple renovation.\n` +
+      `\nGreetings ${donorName}, thank you for your generous contribution of ${formattedAmount} towards 1008 Sri Vrishabhanatha Jinalayam, Othalavadi.\n` +
       `Receipt No: ${effectiveRefNo}\n` +
       `Date: ${formattedDate}\n\n` +
-      `அதிகாரப்பூர்வ ரசீதை காண / Verify Receipt Online:\n${publicVerifyUrl}`;
+      `அதிகாரப்பூர்வ ரசீதை காண / Verify Receipt:\n${publicVerifyUrl}`;
 
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer');

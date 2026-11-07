@@ -14,9 +14,11 @@ import {
   LogOut,
   ExternalLink,
   Menu,
-  X
+  X,
+  KeyRound
 } from 'lucide-react';
 import { getCurrentUser, isSuperAdmin, logout } from '../../services/auth';
+import ChangePasswordModal from '../../components/ChangePasswordModal';
 
 export default function AdminLayout() {
   const { t } = useTranslation();
@@ -24,6 +26,7 @@ export default function AdminLayout() {
   const [currentUser, setCurrentUser] = useState(getCurrentUser());
   const [superAdmin, setSuperAdmin] = useState(isSuperAdmin());
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
 
   useEffect(() => {
     const handleAuthChange = () => {
@@ -146,6 +149,17 @@ export default function AdminLayout() {
 
           <button
             type="button"
+            onClick={() => setPasswordModalOpen(true)}
+            className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition"
+            title={t('auth.changePassword', 'Change Password')}
+          >
+            <KeyRound className="w-3.5 h-3.5 mr-1 text-amber-700" />
+            <span className="hidden sm:inline">{t('auth.changePassword', 'Change Password')}</span>
+            <span className="sm:hidden">Password</span>
+          </button>
+
+          <button
+            type="button"
             onClick={handleLogout}
             className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 transition"
           >
@@ -207,6 +221,12 @@ export default function AdminLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={passwordModalOpen}
+        onClose={() => setPasswordModalOpen(false)}
+      />
     </div>
   );
 }
