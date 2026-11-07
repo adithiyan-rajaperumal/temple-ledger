@@ -13,6 +13,8 @@ spring:
       maximum-pool-size: 5
       connection-timeout: 20000
       initialization-fail-timeout: 30000
+      data-source-properties:
+        stringtype: unspecified
   jpa:
     hibernate:
       ddl-auto: none
