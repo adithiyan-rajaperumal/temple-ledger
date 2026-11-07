@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Banknote,
@@ -10,6 +10,7 @@ import {
   User,
   Phone,
   MapPin,
+  Globe,
   FileText,
   Building,
   HeartHandshake,
@@ -18,15 +19,23 @@ import {
 } from 'lucide-react';
 import {
   recordDonation,
+  searchDonors,
+  searchAreas,
   getPublicDrives,
   getAdminFamilies,
   getPledges
 } from '../../services/api';
 import ReceiptModal from '../../components/ReceiptModal';
 import { formatCurrency } from '../../utils/formatters';
+import {
+  getCountriesList,
+  getStatesForCountry,
+  DEFAULT_COUNTRY,
+  DEFAULT_STATE
+} from '../../utils/locationData';
 
 export default function DonationEntry() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Mode: CASH | GPAY_ONLINE | IN_KIND
   const [paymentMode, setPaymentMode] = useState('CASH');
@@ -40,9 +49,20 @@ export default function DonationEntry() {
   );
   const [donorName, setDonorName] = useState('');
   const [donorNameTa, setDonorNameTa] = useState('');
-  const [village, setVillage] = useState('Main Village');
+  const [country, setCountry] = useState(DEFAULT_COUNTRY);
+  const [state, setState] = useState(DEFAULT_STATE);
+  const [area, setArea] = useState('');
+  const [village, setVillage] = useState('');
   const [phone, setPhone] = useState('');
   const [notes, setNotes] = useState('');
+
+  // Autocomplete suggestions & dropdown visibility
+  const [donorSuggestions, setDonorSuggestions] = useState([]);
+  const [showDonorDropdown, setShowDonorDropdown] = useState(false);
+  const [areaSuggestions, setAreaSuggestions] = useState([]);
+  const [showAreaDropdown, setShowAreaDropdown] = useState(false);
+  const donorDropdownRef = useRef(null);
+  const areaDropdownRef = useRef(null);
 
   // Payment details
   const [amount, setAmount] = useState('');
@@ -103,21 +123,146 @@ export default function DonationEntry() {
     loadDropdowns();
   }, []);
 
+  // Close autocomplete dropdowns on outside click
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (donorDropdownRef.current && !donorDropdownRef.current.contains(event.target)) {
+        setShowDonorDropdown(false);
+      }
+      if (areaDropdownRef.current && !areaDropdownRef.current.contains(event.target)) {
+        setShowAreaDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Cascading Country and State options
+  const countries = useMemo(() => {
+    return getCountriesList(i18n.language);
+  }, [i18n.language]);
+
+  const availableStates = useMemo(() => {
+    return getStatesForCountry(country, i18n.language);
+  }, [country, i18n.language]);
+
+  const handleCountryChange = (newCountry) => {
+    setCountry(newCountry);
+    const states = getStatesForCountry(newCountry, i18n.language);
+    if (states && states.length > 0) {
+      setState(states[0].name);
+    } else {
+      setState('');
+    }
+  };
+
+  // Debounced donor name search for autocomplete
+  useEffect(() => {
+    if (!donorName || donorName.trim().length < 2) {
+      setDonorSuggestions([]);
+      setShowDonorDropdown(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const results = await searchDonors(donorName.trim());
+        if (Array.isArray(results) && results.length > 0) {
+          setDonorSuggestions(results);
+          setShowDonorDropdown(true);
+        } else {
+          setDonorSuggestions([]);
+          setShowDonorDropdown(false);
+        }
+      } catch (err) {
+        console.error('Error searching donors:', err);
+        setDonorSuggestions([]);
+        setShowDonorDropdown(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [donorName]);
+
+  const handleSelectDonorSuggestion = (suggestion) => {
+    setDonorName(suggestion.donorName || '');
+    if (suggestion.donorNameTa) setDonorNameTa(suggestion.donorNameTa);
+    if (suggestion.phone) setPhone(suggestion.phone);
+    if (suggestion.area || suggestion.village) {
+      const loc = suggestion.area || suggestion.village;
+      setArea(loc);
+      setVillage(loc);
+    }
+    if (suggestion.country) {
+      setCountry(suggestion.country);
+      if (suggestion.state) {
+        setState(suggestion.state);
+      }
+    } else if (suggestion.state) {
+      setState(suggestion.state);
+    }
+    if (suggestion.familyId) {
+      setSelectedFamilyId(suggestion.familyId);
+      setDonorSource('VILLAGE_FAMILY_DRIVE');
+    }
+    setShowDonorDropdown(false);
+  };
+
+  // Debounced area search for autocomplete
+  useEffect(() => {
+    if (!area || area.trim().length < 1) {
+      setAreaSuggestions([]);
+      setShowAreaDropdown(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const results = await searchAreas(area.trim());
+        if (Array.isArray(results) && results.length > 0) {
+          setAreaSuggestions(results);
+          setShowAreaDropdown(true);
+        } else {
+          setAreaSuggestions([]);
+          setShowAreaDropdown(false);
+        }
+      } catch (err) {
+        console.error('Error searching areas:', err);
+        setAreaSuggestions([]);
+        setShowAreaDropdown(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [area]);
+
+  const handleSelectAreaSuggestion = (selectedArea) => {
+    setArea(selectedArea);
+    setVillage(selectedArea);
+    setShowAreaDropdown(false);
+  };
+
   // Compute total for In-Kind
-  const computedInKindTotal = React.useMemo(() => {
+  const computedInKindTotal = useMemo(() => {
     const q = parseFloat(quantity) || 0;
     const r = parseFloat(approximateUnitRate) || 0;
     return q * r;
   }, [quantity, approximateUnitRate]);
 
-  // When family is picked, auto-populate head name & village
+  // When family is picked, auto-populate head name & location
   const handleFamilySelect = (famId) => {
     setSelectedFamilyId(famId);
     const fam = families.find((f) => f.id === famId);
     if (fam) {
       if (!donorName) setDonorName(fam.headName);
       if (!donorNameTa && fam.headNameTa) setDonorNameTa(fam.headNameTa);
-      if (fam.village) setVillage(fam.village);
+      const loc = fam.area || fam.village;
+      if (loc) {
+        setArea(loc);
+        setVillage(loc);
+      }
+      if (fam.state) setState(fam.state);
+      if (fam.country) setCountry(fam.country);
       if (fam.phone && !phone) setPhone(fam.phone);
     }
   };
@@ -125,6 +270,10 @@ export default function DonationEntry() {
   const resetForm = () => {
     setDonorName('');
     setDonorNameTa('');
+    setArea('');
+    setVillage('');
+    setCountry(DEFAULT_COUNTRY);
+    setState(DEFAULT_STATE);
     setPhone('');
     setNotes('');
     setAmount('');
@@ -136,6 +285,10 @@ export default function DonationEntry() {
     setSelectedFamilyId('');
     setSelectedPledgeId('');
     setErrorMessage('');
+    setDonorSuggestions([]);
+    setShowDonorDropdown(false);
+    setAreaSuggestions([]);
+    setShowAreaDropdown(false);
   };
 
   const handleSubmit = async (e) => {
@@ -183,12 +336,16 @@ export default function DonationEntry() {
     setSubmitting(true);
 
     try {
+      const loc = area.trim() || village.trim();
       const payload = {
         donationDate,
         donorSource,
         donorName: donorName.trim(),
         donorNameTa: donorNameTa.trim() || undefined,
-        village: village.trim() || undefined,
+        area: loc || undefined,
+        village: loc || undefined,
+        state: state.trim() || undefined,
+        country: country.trim() || undefined,
         phone: phone.trim() || undefined,
         paymentMode,
         notes: notes.trim() || undefined,
@@ -464,13 +621,14 @@ export default function DonationEntry() {
           )}
         </div>
 
-        {/* Step 3: Donor Particulars (Bilingual) */}
+        {/* Step 3: Donor Particulars & Location (Bilingual & Cascading) */}
         <div className="border-t border-slate-100 pt-5">
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-3">
             3. {t('donation.donorDetails', 'Donor Information / நன்கொடையாளர் விவரம்')}
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
+            {/* Donor Name (English) with Smart Autocomplete */}
+            <div className="relative" ref={donorDropdownRef}>
               <label className="block text-xs font-semibold text-slate-600 mb-1">
                 {t('donation.donorNameEn', 'Donor Name (English)')} *
               </label>
@@ -479,14 +637,45 @@ export default function DonationEntry() {
                 <input
                   type="text"
                   required
+                  autoComplete="off"
                   placeholder="e.g. S. Muthukumar"
                   value={donorName}
                   onChange={(e) => setDonorName(e.target.value)}
+                  onFocus={() => {
+                    if (donorSuggestions.length > 0) setShowDonorDropdown(true);
+                  }}
                   className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-amber-500"
                 />
               </div>
+              {showDonorDropdown && donorSuggestions.length > 0 && (
+                <ul className="absolute z-30 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white border border-amber-300 rounded-xl shadow-xl divide-y divide-slate-100 text-xs">
+                  {donorSuggestions.map((s, idx) => (
+                    <li
+                      key={`${s.donorName}-${s.area || s.village}-${idx}`}
+                      onClick={() => handleSelectDonorSuggestion(s)}
+                      className="p-2.5 hover:bg-amber-50 cursor-pointer transition flex flex-col gap-0.5"
+                    >
+                      <div className="flex items-center justify-between font-bold text-slate-900">
+                        <span>
+                          {s.donorName} {s.donorNameTa ? `(${s.donorNameTa})` : ''}
+                        </span>
+                        {s.familyCode && (
+                          <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[10px] font-mono">
+                            {s.familyCode}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-slate-500 flex items-center gap-2">
+                        <span>{[s.area || s.village, s.state, s.country].filter(Boolean).join(', ')}</span>
+                        {s.phone && <span>• 📞 {s.phone}</span>}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
+            {/* Donor Name (Tamil) */}
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">
                 {t('donation.donorNameTa', 'பெயர் (தமிழ் - விருப்பத்தேர்வு)')}
@@ -500,38 +689,7 @@ export default function DonationEntry() {
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">
-                {t('receipt.date', 'Donation Date')} *
-              </label>
-              <div className="relative">
-                <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
-                <input
-                  type="date"
-                  required
-                  value={donationDate}
-                  onChange={(e) => setDonationDate(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">
-                {t('receipt.address', 'Village / City')}
-              </label>
-              <div className="relative">
-                <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="e.g. Main Village / Chennai"
-                  value={village}
-                  onChange={(e) => setVillage(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
-            </div>
-
+            {/* Phone */}
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">
                 {t('receipt.phone', 'Phone Number (For WhatsApp Receipt)')}
@@ -548,7 +706,101 @@ export default function DonationEntry() {
               </div>
             </div>
 
+            {/* Country (Cascading Parent Dropdown) */}
             <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                {t('forms.country', 'Country')}
+              </label>
+              <div className="relative">
+                <Globe className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
+                <select
+                  value={country}
+                  onChange={(e) => handleCountryChange(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-amber-500 cursor-pointer"
+                >
+                  {countries.map((c) => (
+                    <option key={c.code} value={c.name}>
+                      {c.displayName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* State (Cascading Child Dropdown) */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                {t('forms.state', 'State / Province')}
+              </label>
+              <select
+                value={state}
+                onChange={(e) => setState(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-amber-500 cursor-pointer"
+              >
+                {availableStates.map((s) => (
+                  <option key={s.name} value={s.name}>
+                    {s.displayName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Area / Village with Autocomplete */}
+            <div className="relative" ref={areaDropdownRef}>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                {t('forms.area', 'Area / Village')}
+              </label>
+              <div className="relative">
+                <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
+                <input
+                  type="text"
+                  autoComplete="off"
+                  placeholder={t('forms.areaSearchHint', 'Search or enter area / street...')}
+                  value={area}
+                  onChange={(e) => {
+                    setArea(e.target.value);
+                    setVillage(e.target.value);
+                  }}
+                  onFocus={() => {
+                    if (areaSuggestions.length > 0) setShowAreaDropdown(true);
+                  }}
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              {showAreaDropdown && areaSuggestions.length > 0 && (
+                <ul className="absolute z-30 left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-amber-300 rounded-xl shadow-xl divide-y divide-slate-100 text-xs">
+                  {areaSuggestions.map((a, idx) => (
+                    <li
+                      key={`${a}-${idx}`}
+                      onClick={() => handleSelectAreaSuggestion(a)}
+                      className="p-2.5 hover:bg-amber-50 cursor-pointer font-medium text-slate-800 transition"
+                    >
+                      {a}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* Donation Date */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                {t('receipt.date', 'Donation Date')} *
+              </label>
+              <div className="relative">
+                <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
+                <input
+                  type="date"
+                  required
+                  value={donationDate}
+                  onChange={(e) => setDonationDate(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+            </div>
+
+            {/* Remarks / Memo */}
+            <div className="sm:col-span-2">
               <label className="block text-xs font-semibold text-slate-600 mb-1">
                 {t('receipt.notes', 'Remarks / Memo')}
               </label>

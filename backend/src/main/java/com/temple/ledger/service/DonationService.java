@@ -14,6 +14,7 @@ import com.temple.ledger.domain.inflow.InKindDonation;
 import com.temple.ledger.domain.inflow.PaymentMode;
 import com.temple.ledger.dto.inflow.CreateDonationRequest;
 import com.temple.ledger.dto.inflow.DonationReceiptResponse;
+import com.temple.ledger.dto.inflow.DonorProfileDto;
 import com.temple.ledger.repository.AccountRepository;
 import com.temple.ledger.repository.DonationRepository;
 import com.temple.ledger.repository.DriveFamilyAllocationRepository;
@@ -28,7 +29,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -177,6 +181,18 @@ public class DonationService {
         );
 
         // 5. Create and Save Donation Entity
+        String effectiveArea = request.getArea() != null && !request.getArea().isBlank()
+                ? request.getArea().trim()
+                : (request.getVillage() != null && !request.getVillage().isBlank()
+                    ? request.getVillage().trim()
+                    : (family != null ? (family.getArea() != null ? family.getArea() : family.getVillage()) : null));
+        String effectiveState = request.getState() != null && !request.getState().isBlank()
+                ? request.getState().trim()
+                : (family != null && family.getState() != null ? family.getState() : "Tamil Nadu");
+        String effectiveCountry = request.getCountry() != null && !request.getCountry().isBlank()
+                ? request.getCountry().trim()
+                : (family != null && family.getCountry() != null ? family.getCountry() : "India");
+
         Donation donation = Donation.builder()
                 .receiptNo(receiptNo)
                 .donationDate(donationDate)
@@ -186,7 +202,10 @@ public class DonationService {
                 .pledge(pledge)
                 .donorName(request.getDonorName())
                 .donorNameTa(request.getDonorNameTa())
-                .village(request.getVillage() != null ? request.getVillage() : (family != null ? family.getVillage() : null))
+                .village(effectiveArea)
+                .area(effectiveArea)
+                .state(effectiveState)
+                .country(effectiveCountry)
                 .phone(request.getPhone() != null ? request.getPhone() : (family != null ? family.getPhone() : null))
                 .paymentMode(request.getPaymentMode())
                 .amount(finalAmount)
@@ -311,6 +330,9 @@ public class DonationService {
                 .donorName(savedDonation.getDonorName())
                 .donorNameTa(savedDonation.getDonorNameTa())
                 .village(savedDonation.getVillage())
+                .area(savedDonation.getArea())
+                .state(savedDonation.getState())
+                .country(savedDonation.getCountry())
                 .phone(savedDonation.getPhone())
                 .paymentMode(savedDonation.getPaymentMode())
                 .amount(savedDonation.getAmount())
@@ -331,6 +353,61 @@ public class DonationService {
                 .journalEntryNumber(journalEntry.getEntryNumber())
                 .createdAt(savedDonation.getCreatedAt())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<DonorProfileDto> searchDonors(String query) {
+        if (query == null || query.trim().length() < 2) {
+            return List.of();
+        }
+        String q = query.trim();
+        Map<String, DonorProfileDto> profileMap = new LinkedHashMap<>();
+
+        // 1. Search past donations
+        List<Donation> pastDonations = donationRepository.searchDonorsByName(q);
+        for (Donation d : pastDonations) {
+            String areaVal = d.getArea() != null ? d.getArea() : d.getVillage();
+            String key = (d.getDonorName() + "|" + (areaVal != null ? areaVal : "")).toLowerCase();
+            if (!profileMap.containsKey(key)) {
+                profileMap.put(key, DonorProfileDto.builder()
+                        .donorName(d.getDonorName())
+                        .donorNameTa(d.getDonorNameTa())
+                        .area(areaVal)
+                        .state(d.getState() != null ? d.getState() : "Tamil Nadu")
+                        .country(d.getCountry() != null ? d.getCountry() : "India")
+                        .phone(d.getPhone())
+                        .familyId(d.getFamily() != null ? d.getFamily().getId() : null)
+                        .familyCode(d.getFamily() != null ? d.getFamily().getFamilyCode() : null)
+                        .build());
+            }
+        }
+
+        // 2. Search master families
+        List<Family> families = familyRepository.findByHeadNameContainingIgnoreCase(q);
+        for (Family f : families) {
+            String areaVal = f.getArea() != null ? f.getArea() : f.getVillage();
+            String key = (f.getHeadName() + "|" + (areaVal != null ? areaVal : "")).toLowerCase();
+            if (!profileMap.containsKey(key)) {
+                profileMap.put(key, DonorProfileDto.builder()
+                        .donorName(f.getHeadName())
+                        .donorNameTa(f.getHeadNameTa())
+                        .area(areaVal)
+                        .state(f.getState() != null ? f.getState() : "Tamil Nadu")
+                        .country(f.getCountry() != null ? f.getCountry() : "India")
+                        .phone(f.getPhone())
+                        .familyId(f.getId())
+                        .familyCode(f.getFamilyCode())
+                        .build());
+            }
+        }
+
+        return new ArrayList<>(profileMap.values());
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> searchAreas(String query) {
+        String q = (query != null) ? query.trim() : "";
+        return donationRepository.searchAreas(q);
     }
 
     private synchronized String generateUniqueReceiptNo(LocalDate donationDate) {

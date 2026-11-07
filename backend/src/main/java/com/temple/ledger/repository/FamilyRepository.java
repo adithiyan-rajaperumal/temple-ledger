@@ -12,4 +12,5 @@ import java.util.UUID;
 public interface FamilyRepository extends JpaRepository<Family, UUID> {
     List<Family> findByIsActiveTrue();
     Optional<Family> findByFamilyCode(String familyCode);
+    List<Family> findByHeadNameContainingIgnoreCase(String query);
 }

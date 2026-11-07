@@ -28,6 +28,9 @@ public class DonationReceiptResponse {
     private String donorName;
     private String donorNameTa;
     private String village;
+    private String area;
+    private String state;
+    private String country;
     private String phone;
     private PaymentMode paymentMode;
     private BigDecimal amount;

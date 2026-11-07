@@ -119,6 +119,22 @@ export async function recordDonation(data) {
 }
 
 /**
+ * Search previous donors for autocomplete.
+ */
+export async function searchDonors(query) {
+  const response = await api.get('/donations/donors/search', { params: { query } });
+  return response.data;
+}
+
+/**
+ * Search previous areas for autocomplete.
+ */
+export async function searchAreas(query) {
+  const response = await api.get('/donations/areas/search', { params: { query } });
+  return response.data;
+}
+
+/**
  * Record a new renovation or operating expense voucher.
  */
 export async function recordExpense(data) {

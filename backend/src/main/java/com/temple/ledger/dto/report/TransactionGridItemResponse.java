@@ -24,5 +24,8 @@ public class TransactionGridItemResponse {
     private String referenceNo; // receipt # or voucher #
     private String partyName; // donor or paidTo
     private String village;
+    private String area;
+    private String state;
+    private String country;
     private String notes;
 }

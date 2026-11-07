@@ -2,6 +2,7 @@ package com.temple.ledger.controller;
 
 import com.temple.ledger.dto.inflow.CreateDonationRequest;
 import com.temple.ledger.dto.inflow.DonationReceiptResponse;
+import com.temple.ledger.dto.inflow.DonorProfileDto;
 import com.temple.ledger.service.DonationService;
 import com.temple.ledger.service.ReportService;
 import jakarta.validation.Valid;
@@ -14,8 +15,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -38,5 +41,15 @@ public class DonationController {
     @GetMapping("/{id}")
     public ResponseEntity<DonationReceiptResponse> getDonationById(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(reportService.getDonationById(id));
+    }
+
+    @GetMapping("/donors/search")
+    public ResponseEntity<List<DonorProfileDto>> searchDonors(@RequestParam("query") String query) {
+        return ResponseEntity.ok(donationService.searchDonors(query));
+    }
+
+    @GetMapping("/areas/search")
+    public ResponseEntity<List<String>> searchAreas(@RequestParam(value = "query", required = false) String query) {
+        return ResponseEntity.ok(donationService.searchAreas(query));
     }
 }
