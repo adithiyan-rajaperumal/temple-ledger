@@ -22,6 +22,8 @@ public class TransactionGridItemResponse {
     private BigDecimal amount;
     private String paymentMode; // CASH, GPAY_ONLINE, IN_KIND
     private String referenceNo; // receipt # or voucher #
+    private String bookNo;
+    private String manualReceiptNo;
     private String partyName; // donor or paidTo
     private String village;
     private String area;

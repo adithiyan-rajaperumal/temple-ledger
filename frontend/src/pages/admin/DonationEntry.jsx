@@ -66,6 +66,8 @@ export default function DonationEntry() {
 
   // Payment details
   const [amount, setAmount] = useState('');
+  const [bookNo, setBookNo] = useState('');
+  const [manualReceiptNo, setManualReceiptNo] = useState('');
   const [physicalBookReceiptNo, setPhysicalBookReceiptNo] = useState('');
   const [gpayTransactionId, setGpayTransactionId] = useState('');
 
@@ -277,6 +279,8 @@ export default function DonationEntry() {
     setPhone('');
     setNotes('');
     setAmount('');
+    setBookNo('');
+    setManualReceiptNo('');
     setPhysicalBookReceiptNo('');
     setGpayTransactionId('');
     setItemDescription('');
@@ -305,9 +309,15 @@ export default function DonationEntry() {
         setErrorMessage(t('donation.enterValidAmount', 'Please enter a valid positive cash amount'));
         return;
       }
-      if (!physicalBookReceiptNo.trim()) {
+      if (!bookNo.trim()) {
         setErrorMessage(
-          t('donation.enterBookReceipt', 'Physical Receipt Book No is mandatory for cash collections')
+          t('donation.enterBookNo', 'Donation Book Number is required for cash collections')
+        );
+        return;
+      }
+      if (!manualReceiptNo.trim()) {
+        setErrorMessage(
+          t('donation.enterReceiptSlipNo', 'Receipt Slip Number is required for cash collections')
         );
         return;
       }
@@ -356,7 +366,9 @@ export default function DonationEntry() {
 
       if (paymentMode === 'CASH') {
         payload.amount = parseFloat(amount);
-        payload.physicalBookReceiptNo = physicalBookReceiptNo.trim();
+        payload.bookNo = bookNo.trim();
+        payload.manualReceiptNo = manualReceiptNo.trim();
+        payload.physicalBookReceiptNo = `Book ${bookNo.trim()} / Receipt ${manualReceiptNo.trim()}`;
       } else if (paymentMode === 'GPAY_ONLINE') {
         payload.amount = parseFloat(amount);
         payload.gpayTransactionId = gpayTransactionId.trim();
@@ -826,7 +838,7 @@ export default function DonationEntry() {
 
           {/* CASH MODE */}
           {paymentMode === 'CASH' && (
-            <div className="p-4 sm:p-5 bg-emerald-50/50 rounded-2xl border border-emerald-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="p-4 sm:p-5 bg-emerald-50/50 rounded-2xl border border-emerald-200 grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-bold text-emerald-950 mb-1">
                   {t('donation.amountInr', 'Donation Amount (₹)')} *
@@ -848,18 +860,35 @@ export default function DonationEntry() {
 
               <div>
                 <label className="block text-xs font-bold text-emerald-950 mb-1">
-                  {t('donation.physicalBookReceipt', 'Physical Receipt Book No / ரசீது புத்தக எண்')} *
+                  {t('donation.bookNo', 'Donation Book # / புத்தக எண்')} *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. BOOK-12 / RCT-42"
-                  value={physicalBookReceiptNo}
-                  onChange={(e) => setPhysicalBookReceiptNo(e.target.value)}
+                  placeholder="e.g. 12 or B-04"
+                  value={bookNo}
+                  onChange={(e) => setBookNo(e.target.value)}
                   className="w-full px-3 py-2.5 bg-white border border-emerald-300 rounded-xl text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500"
                 />
                 <span className="text-[11px] text-emerald-800 mt-1 block">
-                  Mandatory: Matches temple printed physical receipt slip.
+                  Printed donation receipt book number.
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-emerald-950 mb-1">
+                  {t('donation.receiptSlipNo', 'Receipt Slip # / ரசீது தாள் எண்')} *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 45 or 0142"
+                  value={manualReceiptNo}
+                  onChange={(e) => setManualReceiptNo(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-white border border-emerald-300 rounded-xl text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                />
+                <span className="text-[11px] text-emerald-800 mt-1 block">
+                  Specific slip / leaf number in the book.
                 </span>
               </div>
             </div>

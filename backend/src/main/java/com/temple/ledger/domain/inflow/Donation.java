@@ -93,6 +93,12 @@ public class Donation {
     @Column(name = "amount", precision = 12, scale = 2, nullable = false)
     private BigDecimal amount;
 
+    @Column(name = "book_no", length = 32)
+    private String bookNo;
+
+    @Column(name = "manual_receipt_no", length = 32)
+    private String manualReceiptNo;
+
     @Column(name = "physical_book_receipt_no", length = 64)
     private String physicalBookReceiptNo;
 
@@ -148,6 +154,7 @@ public class Donation {
         if (this.village == null && this.area != null) {
             this.village = this.area;
         }
+        syncBookAndReceipt();
     }
 
     @PreUpdate
@@ -158,6 +165,29 @@ public class Donation {
         }
         if (this.village == null && this.area != null) {
             this.village = this.area;
+        }
+        syncBookAndReceipt();
+    }
+
+    private void syncBookAndReceipt() {
+        if ((this.bookNo != null && !this.bookNo.isBlank()) || (this.manualReceiptNo != null && !this.manualReceiptNo.isBlank())) {
+            StringBuilder sb = new StringBuilder();
+            if (this.bookNo != null && !this.bookNo.isBlank()) {
+                sb.append("Book ").append(this.bookNo.trim());
+            }
+            if (this.manualReceiptNo != null && !this.manualReceiptNo.isBlank()) {
+                if (sb.length() > 0) sb.append(" / ");
+                sb.append("Receipt ").append(this.manualReceiptNo.trim());
+            }
+            this.physicalBookReceiptNo = sb.toString();
+        } else if (this.physicalBookReceiptNo != null && !this.physicalBookReceiptNo.isBlank()) {
+            if (this.physicalBookReceiptNo.contains("/")) {
+                String[] parts = this.physicalBookReceiptNo.split("/", 2);
+                this.bookNo = parts[0].trim();
+                this.manualReceiptNo = parts[1].trim();
+            } else {
+                this.manualReceiptNo = this.physicalBookReceiptNo.trim();
+            }
         }
     }
 }

@@ -305,4 +305,44 @@ assert.strictEqual(autofilled.selectedFamilyId, 'fam-uuid-123');
 assert.strictEqual(autofilled.donorSource, 'VILLAGE_FAMILY_DRIVE');
 console.log('✓ Autocomplete donor autofill mapping verified');
 
+// 12. Test Cash Donation Split Book No and Receipt Slip No Validation & Payload
+console.log('Testing Cash Donation Split Book & Receipt Slip Validation...');
+function validateAndBuildCashDonation(amount, bookNo, manualReceiptNo) {
+  if (!amount || parseFloat(amount) <= 0) {
+    throw new Error('Please enter a valid positive cash amount');
+  }
+  if (!bookNo || !bookNo.trim()) {
+    throw new Error('Donation Book Number is required for cash collections');
+  }
+  if (!manualReceiptNo || !manualReceiptNo.trim()) {
+    throw new Error('Receipt Slip Number is required for cash collections');
+  }
+  return {
+    amount: parseFloat(amount),
+    bookNo: bookNo.trim(),
+    manualReceiptNo: manualReceiptNo.trim(),
+    physicalBookReceiptNo: `Book ${bookNo.trim()} / Receipt ${manualReceiptNo.trim()}`,
+  };
+}
+
+// Valid payload
+const cashPayload = validateAndBuildCashDonation('5000', 'B-12', '045');
+assert.strictEqual(cashPayload.amount, 5000);
+assert.strictEqual(cashPayload.bookNo, 'B-12');
+assert.strictEqual(cashPayload.manualReceiptNo, '045');
+assert.strictEqual(cashPayload.physicalBookReceiptNo, 'Book B-12 / Receipt 045');
+
+// Missing book number
+assert.throws(
+  () => validateAndBuildCashDonation('5000', '', '045'),
+  /Donation Book Number is required/
+);
+
+// Missing receipt slip number
+assert.throws(
+  () => validateAndBuildCashDonation('5000', 'B-12', '   '),
+  /Receipt Slip Number is required/
+);
+console.log('✓ Cash donation split book & slip validation and payload logic verified');
+
 console.log('--- All Admin Portal & Form Tests PASSED! ---');

@@ -34,6 +34,8 @@ public class DonationReceiptResponse {
     private String phone;
     private PaymentMode paymentMode;
     private BigDecimal amount;
+    private String bookNo;
+    private String manualReceiptNo;
     private String physicalBookReceiptNo;
     private String gpayTransactionId;
     private String notes;
