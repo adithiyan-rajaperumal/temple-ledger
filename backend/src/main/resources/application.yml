@@ -1,8 +1,6 @@
 spring:
   application:
     name: temple-ledger
-  main:
-    lazy-initialization: true
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/temple_ledger}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
