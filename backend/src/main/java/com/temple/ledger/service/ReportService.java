@@ -373,6 +373,9 @@ public class ReportService {
                     .referenceNo(d.getReceiptNo())
                     .partyName(d.getDonorName())
                     .village(d.getVillage())
+                    .area(d.getArea() != null ? d.getArea() : d.getVillage())
+                    .state(d.getState() != null ? d.getState() : "Tamil Nadu")
+                    .country(d.getCountry() != null ? d.getCountry() : "India")
                     .notes(d.getNotes())
                     .build());
         }
@@ -428,15 +431,18 @@ public class ReportService {
                         return false;
                     }
 
-                    // Search text filter across partyName, village, referenceNo, notes
+                    // Search text filter across partyName, village, area, state, country, referenceNo, notes
                     if (search != null && !search.isBlank()) {
                         String s = search.toLowerCase().trim();
                         boolean matchParty = item.getPartyName() != null && item.getPartyName().toLowerCase().contains(s);
                         boolean matchVillage = item.getVillage() != null && item.getVillage().toLowerCase().contains(s);
+                        boolean matchArea = item.getArea() != null && item.getArea().toLowerCase().contains(s);
+                        boolean matchState = item.getState() != null && item.getState().toLowerCase().contains(s);
+                        boolean matchCountry = item.getCountry() != null && item.getCountry().toLowerCase().contains(s);
                         boolean matchRef = item.getReferenceNo() != null && item.getReferenceNo().toLowerCase().contains(s);
                         boolean matchNotes = item.getNotes() != null && item.getNotes().toLowerCase().contains(s);
 
-                        if (!matchParty && !matchVillage && !matchRef && !matchNotes) {
+                        if (!matchParty && !matchVillage && !matchArea && !matchState && !matchCountry && !matchRef && !matchNotes) {
                             return false;
                         }
                     }
@@ -518,6 +524,9 @@ public class ReportService {
                 .donorName(d.getDonorName())
                 .donorNameTa(d.getDonorNameTa())
                 .village(d.getVillage())
+                .area(d.getArea() != null ? d.getArea() : d.getVillage())
+                .state(d.getState() != null ? d.getState() : "Tamil Nadu")
+                .country(d.getCountry() != null ? d.getCountry() : "India")
                 .phone(d.getPhone())
                 .paymentMode(d.getPaymentMode())
                 .amount(d.getAmount())

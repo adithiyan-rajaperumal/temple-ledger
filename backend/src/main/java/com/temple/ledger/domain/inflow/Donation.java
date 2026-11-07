@@ -74,6 +74,15 @@ public class Donation {
     @Column(name = "village", length = 128)
     private String village;
 
+    @Column(name = "area", length = 128)
+    private String area;
+
+    @Column(name = "state", length = 64)
+    private String state;
+
+    @Column(name = "country", length = 64)
+    private String country;
+
     @Column(name = "phone", length = 20)
     private String phone;
 
@@ -127,10 +136,28 @@ public class Donation {
         if (this.amount == null) {
             this.amount = BigDecimal.ZERO;
         }
+        if (this.country == null || this.country.isBlank()) {
+            this.country = "India";
+        }
+        if (this.state == null || this.state.isBlank()) {
+            this.state = "Tamil Nadu";
+        }
+        if (this.area == null && this.village != null) {
+            this.area = this.village;
+        }
+        if (this.village == null && this.area != null) {
+            this.village = this.area;
+        }
     }
 
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = Instant.now();
+        if (this.area == null && this.village != null) {
+            this.area = this.village;
+        }
+        if (this.village == null && this.area != null) {
+            this.village = this.area;
+        }
     }
 }

@@ -125,11 +125,17 @@ export default function ReceiptModal({
       receipt?.donationDate || receipt?.date || new Date().toISOString()
     );
 
+    const locationParts = [receipt?.area || receipt?.village, receipt?.state, receipt?.country]
+      .filter(Boolean)
+      .join(', ');
+    const locationLine = locationParts ? `இடம் / Location: ${locationParts}\n` : '';
+
     const message =
       `வணக்கம் ${donorName}, எங்கள் கோவில் திருப்பணிக்கு உங்கள் அன்பான நன்கொடை ${formattedAmount} வெற்றிகரமாக பெறப்பட்டது.\n` +
       `ரசீது எண்: ${effectiveRefNo}\n` +
-      `தேதி: ${formattedDate}\n\n` +
-      `Greetings ${donorName}, thank you for your generous contribution of ${formattedAmount} towards our temple renovation.\n` +
+      `தேதி: ${formattedDate}\n` +
+      locationLine +
+      `\nGreetings ${donorName}, thank you for your generous contribution of ${formattedAmount} towards our temple renovation.\n` +
       `Receipt No: ${effectiveRefNo}\n` +
       `Date: ${formattedDate}\n\n` +
       `அதிகாரப்பூர்வ ரசீதை காண / Verify Receipt Online:\n${publicVerifyUrl}`;
@@ -269,9 +275,9 @@ export default function ReceiptModal({
                     {donorName}
                   </span>
                 </div>
-                {(receipt.village || receipt.doorNo || receipt.street) && (
+                {(receipt.area || receipt.village || receipt.doorNo || receipt.street || receipt.state || receipt.country) && (
                   <p className="text-xs text-slate-500 mt-1">
-                    {[receipt.doorNo, receipt.street, receipt.village]
+                    {[receipt.doorNo, receipt.street, receipt.area || receipt.village, receipt.state, receipt.country]
                       .filter(Boolean)
                       .join(', ')}
                   </p>

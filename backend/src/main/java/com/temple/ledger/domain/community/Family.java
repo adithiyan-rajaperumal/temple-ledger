@@ -49,6 +49,17 @@ public class Family {
     @Column(name = "village", length = 128, nullable = false)
     private String village = "Main Village";
 
+    @Column(name = "area", length = 128)
+    private String area;
+
+    @Builder.Default
+    @Column(name = "state", length = 64)
+    private String state = "Tamil Nadu";
+
+    @Builder.Default
+    @Column(name = "country", length = 64)
+    private String country = "India";
+
     @Column(name = "phone", length = 20)
     private String phone;
 

@@ -456,4 +456,39 @@ class DonationServiceTest {
         Pledge p2 = pledgeRepository.findById(pledge.getId()).orElseThrow();
         assertThat(p2.getStatus()).isEqualTo(PledgeStatus.COMPLETED);
     }
+
+    @Test
+    @DisplayName("Record donation with Area, State, Country and verify Autocomplete donor & area search")
+    void testRecordDonationWithLocationAndAutocompleteSearch() {
+        CreateDonationRequest request = CreateDonationRequest.builder()
+                .donationDate(LocalDate.of(2026, 3, 1))
+                .donorName("Muthusamy Gounder")
+                .donorNameTa("முத்துசாமி")
+                .area("Gandhinagar")
+                .state("Tamil Nadu")
+                .country("India")
+                .phone("9876543210")
+                .paymentMode(PaymentMode.CASH)
+                .amount(new BigDecimal("5000.00"))
+                .physicalBookReceiptNo("BK-LOC-01")
+                .build();
+
+        DonationReceiptResponse res = donationService.recordDonation(request, "admin");
+        assertThat(res.getArea()).isEqualTo("Gandhinagar");
+        assertThat(res.getState()).isEqualTo("Tamil Nadu");
+        assertThat(res.getCountry()).isEqualTo("India");
+
+        // Autocomplete donor search
+        var donors = donationService.searchDonors("Muthu");
+        assertThat(donors).isNotEmpty();
+        assertThat(donors.get(0).getDonorName()).isEqualTo("Muthusamy Gounder");
+        assertThat(donors.get(0).getArea()).isEqualTo("Gandhinagar");
+        assertThat(donors.get(0).getState()).isEqualTo("Tamil Nadu");
+        assertThat(donors.get(0).getCountry()).isEqualTo("India");
+        assertThat(donors.get(0).getPhone()).isEqualTo("9876543210");
+
+        // Autocomplete area search
+        var areas = donationService.searchAreas("Gandhi");
+        assertThat(areas).contains("Gandhinagar");
+    }
 }

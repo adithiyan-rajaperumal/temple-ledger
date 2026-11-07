@@ -157,7 +157,9 @@ export default function MasterDataGrid() {
         'Category (EN)',
         'Category (TA)',
         'Party / Payee / Donor',
-        'Village',
+        'Area / Village',
+        'State',
+        'Country',
         'Payment Mode',
         'Amount (INR)',
         'Notes',
@@ -170,7 +172,9 @@ export default function MasterDataGrid() {
         `"${(item.category || '').replace(/"/g, '""')}"`,
         `"${(item.categoryTa || '').replace(/"/g, '""')}"`,
         `"${(item.partyName || '').replace(/"/g, '""')}"`,
-        `"${(item.village || '').replace(/"/g, '""')}"`,
+        `"${(item.area || item.village || '').replace(/"/g, '""')}"`,
+        `"${(item.state || '').replace(/"/g, '""')}"`,
+        `"${(item.country || '').replace(/"/g, '""')}"`,
         item.paymentMode || '',
         item.amount != null ? item.amount : 0,
         `"${(item.notes || '').replace(/"/g, '""')}"`,
@@ -352,9 +356,16 @@ export default function MasterDataGrid() {
                             {txn.partyName || '-'}
                           </td>
 
-                          {/* Village */}
+                          {/* Area / Village & Location */}
                           <td className="py-3 px-4 text-slate-500 whitespace-nowrap">
-                            {txn.village || '-'}
+                            <div className="font-medium text-slate-700">
+                              {txn.area || txn.village || '-'}
+                            </div>
+                            {(txn.state || txn.country) && (
+                              <div className="text-[10px] text-slate-400">
+                                {[txn.state, txn.country].filter(Boolean).join(', ')}
+                              </div>
+                            )}
                           </td>
 
                           {/* Payment Mode */}

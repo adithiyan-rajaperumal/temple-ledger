@@ -37,4 +37,10 @@ public interface DonationRepository extends JpaRepository<Donation, UUID> {
 
     @Query("SELECT COALESCE(SUM(d.amount), 0) FROM Donation d WHERE d.drive.id = :driveId")
     BigDecimal sumAmountByDriveId(@Param("driveId") UUID driveId);
+
+    @Query("SELECT d FROM Donation d WHERE LOWER(d.donorName) LIKE LOWER(CONCAT('%', :query, '%')) ORDER BY d.createdAt DESC")
+    List<Donation> searchDonorsByName(@Param("query") String query);
+
+    @Query("SELECT DISTINCT COALESCE(d.area, d.village) FROM Donation d WHERE (d.area IS NOT NULL OR d.village IS NOT NULL) AND (LOWER(COALESCE(d.area, d.village)) LIKE LOWER(CONCAT('%', :query, '%'))) ORDER BY COALESCE(d.area, d.village) ASC")
+    List<String> searchAreas(@Param("query") String query);
 }

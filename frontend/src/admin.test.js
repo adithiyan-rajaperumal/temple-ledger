@@ -8,6 +8,13 @@ import {
   logout
 } from './services/auth.js';
 import * as apiMethods from './services/api.js';
+import {
+  COUNTRIES_DATA,
+  DEFAULT_COUNTRY,
+  DEFAULT_STATE,
+  getCountriesList,
+  getStatesForCountry
+} from './utils/locationData.js';
 
 console.log('--- Running Admin Portal, Auth & Bilingual Form Tests ---');
 
@@ -69,6 +76,8 @@ console.log('✓ Auth Service authentication & role hierarchy tests passed');
 console.log('Testing Admin API Service Function Exports...');
 const requiredApiFunctions = [
   'recordDonation',
+  'searchDonors',
+  'searchAreas',
   'recordExpense',
   'getContractors',
   'createContractor',
@@ -224,5 +233,76 @@ assert.deepStrictEqual(
   ['2']
 );
 console.log('✓ Audit trail client-side entity filter verified');
+
+// 10. Test Cascading Country and State hierarchical dataset & defaults
+console.log('Testing Cascading Country and State Data & Dropdowns...');
+assert.strictEqual(DEFAULT_COUNTRY, 'India', 'Default country must be India');
+assert.strictEqual(DEFAULT_STATE, 'Tamil Nadu', 'Default state must be Tamil Nadu');
+
+const countriesEn = getCountriesList('en');
+assert.ok(countriesEn.length >= 10, 'Should have multiple countries pre-populated');
+assert.ok(countriesEn.some((c) => c.name === 'India'));
+assert.ok(countriesEn.some((c) => c.name === 'United States'));
+assert.ok(countriesEn.some((c) => c.name === 'Malaysia'));
+
+const countriesTa = getCountriesList('ta');
+const indiaTa = countriesTa.find((c) => c.name === 'India');
+assert.ok(indiaTa && indiaTa.displayName.includes('இந்தியா'), 'Tamil country label must include Tamil script');
+
+// Verify cascading states for India
+const indianStates = getStatesForCountry('India', 'en');
+assert.ok(indianStates.length >= 15);
+assert.strictEqual(indianStates[0].name, 'Tamil Nadu');
+
+// Verify cascading states for US
+const usStates = getStatesForCountry('United States', 'en');
+assert.ok(usStates.some((s) => s.name === 'California'));
+assert.ok(usStates.some((s) => s.name === 'Texas'));
+assert.ok(!usStates.some((s) => s.name === 'Tamil Nadu'), 'US states must not include Tamil Nadu');
+
+// Verify cascading states for Malaysia
+const myStates = getStatesForCountry('Malaysia', 'en');
+assert.ok(myStates.some((s) => s.name === 'Selangor'));
+assert.ok(myStates.some((s) => s.name === 'Kuala Lumpur'));
+console.log('✓ Cascading Country and State dropdown logic verified');
+
+// 11. Test Donor Autocomplete Autofill Mapping
+console.log('Testing Autocomplete Autofill Handler...');
+const mockDonorSuggestion = {
+  donorName: 'Muthusamy Gounder',
+  donorNameTa: 'முத்துசாமி',
+  area: 'Gandhinagar',
+  village: 'Gandhinagar',
+  state: 'Tamil Nadu',
+  country: 'India',
+  phone: '9876543210',
+  familyId: 'fam-uuid-123',
+  familyCode: 'FAM-001',
+};
+
+function applyDonorSuggestion(suggestion) {
+  return {
+    donorName: suggestion.donorName || '',
+    donorNameTa: suggestion.donorNameTa || '',
+    phone: suggestion.phone || '',
+    area: suggestion.area || suggestion.village || '',
+    village: suggestion.area || suggestion.village || '',
+    country: suggestion.country || DEFAULT_COUNTRY,
+    state: suggestion.state || DEFAULT_STATE,
+    selectedFamilyId: suggestion.familyId || '',
+    donorSource: suggestion.familyId ? 'VILLAGE_FAMILY_DRIVE' : 'GENERAL_PUBLIC',
+  };
+}
+
+const autofilled = applyDonorSuggestion(mockDonorSuggestion);
+assert.strictEqual(autofilled.donorName, 'Muthusamy Gounder');
+assert.strictEqual(autofilled.donorNameTa, 'முத்துசாமி');
+assert.strictEqual(autofilled.area, 'Gandhinagar');
+assert.strictEqual(autofilled.state, 'Tamil Nadu');
+assert.strictEqual(autofilled.country, 'India');
+assert.strictEqual(autofilled.phone, '9876543210');
+assert.strictEqual(autofilled.selectedFamilyId, 'fam-uuid-123');
+assert.strictEqual(autofilled.donorSource, 'VILLAGE_FAMILY_DRIVE');
+console.log('✓ Autocomplete donor autofill mapping verified');
 
 console.log('--- All Admin Portal & Form Tests PASSED! ---');
