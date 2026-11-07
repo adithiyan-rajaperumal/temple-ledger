@@ -11,9 +11,10 @@ import {
   X,
   Lock,
   User,
-  Sparkles
+  Sparkles,
+  KeyRound
 } from 'lucide-react';
-import { getAdminUsers, createAdminUser } from '../../services/api';
+import { getAdminUsers, createAdminUser, adminResetPassword } from '../../services/api';
 import { formatDate } from '../../utils/formatters';
 
 export default function UserManagement() {
@@ -29,6 +30,11 @@ export default function UserManagement() {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState('ROLE_DATA_ENTRY');
+
+  // Password Reset for other users
+  const [resetTargetUser, setResetTargetUser] = useState(null);
+  const [newPasswordForUser, setNewPasswordForUser] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
 
   // Notifications
   const [successMessage, setSuccessMessage] = useState('');
@@ -90,6 +96,26 @@ export default function UserManagement() {
       await loadUsers();
     } catch (err) {
       setErrorMessage(err.message || 'Failed to create user account');
+    }
+  };
+
+  const handleResetUserPassword = async (e) => {
+    e.preventDefault();
+    if (!newPasswordForUser || newPasswordForUser.length < 6) {
+      setErrorMessage('Password must be at least 6 characters');
+      return;
+    }
+    setResetLoading(true);
+    setErrorMessage('');
+    try {
+      await adminResetPassword(resetTargetUser.id, newPasswordForUser);
+      setSuccessMessage(`Password for ${resetTargetUser.username} has been reset successfully!`);
+      setResetTargetUser(null);
+      setNewPasswordForUser('');
+    } catch (err) {
+      setErrorMessage(err.response?.data?.message || err.message || 'Failed to reset password');
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -185,12 +211,13 @@ export default function UserManagement() {
               <th className="px-4 py-3">Role</th>
               <th className="px-4 py-3 text-center">Status</th>
               <th className="px-4 py-3">Created Date</th>
+              <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {filteredUsers.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
                   {loading ? 'Loading user directory...' : 'No users found.'}
                 </td>
               </tr>
@@ -230,6 +257,22 @@ export default function UserManagement() {
                     </td>
                     <td className="px-4 py-3 text-slate-500 text-xs">
                       {u.createdAt ? formatDate(u.createdAt) : 'Initial Seed'}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {u.id && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setResetTargetUser(u);
+                            setNewPasswordForUser('');
+                          }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition"
+                          title="Reset Password"
+                        >
+                          <KeyRound className="w-3.5 h-3.5 text-amber-600" />
+                          <span>Reset Password</span>
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );
@@ -332,6 +375,71 @@ export default function UserManagement() {
                   className="px-5 py-2 rounded-xl text-xs font-bold bg-amber-600 text-white hover:bg-amber-700 shadow-sm"
                 >
                   Create Account
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Reset Password Modal */}
+      {resetTargetUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <KeyRound className="w-5 h-5 text-amber-600" />
+                <h3 className="text-base font-bold text-slate-900">
+                  Reset Password for {resetTargetUser.username}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setResetTargetUser(null)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleResetUserPassword} className="space-y-4">
+              <p className="text-xs text-slate-600">
+                You are setting a new password for <strong className="text-slate-900">{resetTargetUser.fullName}</strong> ({resetTargetUser.username}).
+              </p>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  New Password * (Min 6 chars)
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    placeholder="Enter new strong password"
+                    value={newPasswordForUser}
+                    onChange={(e) => setNewPasswordForUser(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setResetTargetUser(null)}
+                  disabled={resetLoading}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold border border-slate-300 text-slate-600 hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={resetLoading}
+                  className="px-5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 shadow-sm disabled:opacity-50 flex items-center gap-2"
+                >
+                  {resetLoading ? 'Resetting...' : 'Save New Password'}
                 </button>
               </div>
             </form>

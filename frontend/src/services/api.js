@@ -243,4 +243,25 @@ export async function getAdminAuditLogs(params = {}) {
   return response.data;
 }
 
+/**
+ * Change current user password.
+ */
+export async function changePassword(currentPassword, newPassword) {
+  const response = await api.post('/auth/change-password', {
+    currentPassword,
+    newPassword,
+  });
+  return response.data;
+}
+
+/**
+ * Super Admin reset password for any user.
+ */
+export async function adminResetPassword(userId, newPassword) {
+  const response = await api.patch(`/admin/users/${userId}/password`, {
+    newPassword,
+  });
+  return response.data;
+}
+
 export default api;

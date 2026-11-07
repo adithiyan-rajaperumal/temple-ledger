@@ -12,15 +12,18 @@ import {
   Globe,
   LogOut,
   ShieldCheck,
-  UserCheck
+  UserCheck,
+  KeyRound
 } from 'lucide-react';
 import { changeLanguage } from '../i18n';
 import { isAuthenticated, getCurrentUser, isSuperAdmin, logout } from '../services/auth';
+import ChangePasswordModal from './ChangePasswordModal';
 
 export default function Navbar() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const currentLang = i18n.language ? i18n.language.split('-')[0] : 'en';
 
   const [authed, setAuthed] = useState(isAuthenticated());
@@ -155,6 +158,14 @@ export default function Navbar() {
                 </div>
                 <button
                   type="button"
+                  onClick={() => setPasswordModalOpen(true)}
+                  title={t('auth.changePassword', 'Change Password')}
+                  className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition"
+                >
+                  <KeyRound className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
                   onClick={handleLogout}
                   title="Logout"
                   className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
@@ -242,22 +253,36 @@ export default function Navbar() {
 
           <div className="pt-3 border-t border-slate-200 flex flex-col gap-2">
             {authed ? (
-              <div className="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-xl">
-                <div>
-                  <div className="text-sm font-bold text-slate-900">
-                    {user?.fullName || user?.username}
+              <div className="flex flex-col gap-2 p-3 bg-slate-50 rounded-2xl border border-slate-200/60">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-sm font-bold text-slate-900">
+                      {user?.fullName || user?.username}
+                    </div>
+                    <div className="text-xs text-slate-500">
+                      {superAdmin ? 'Super Admin' : 'Data Entry Operator'}
+                    </div>
                   </div>
-                  <div className="text-xs text-slate-500">
-                    {superAdmin ? 'Super Admin' : 'Data Entry Operator'}
-                  </div>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="px-3 py-1.5 text-xs font-bold text-red-700 bg-red-100 hover:bg-red-200 rounded-lg flex items-center gap-1"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>{t('nav.logout', 'Logout')}</span>
+                  </button>
                 </div>
+
                 <button
                   type="button"
-                  onClick={handleLogout}
-                  className="px-3 py-1 text-xs font-bold text-red-700 bg-red-100 hover:bg-red-200 rounded-lg flex items-center gap-1"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setPasswordModalOpen(true);
+                  }}
+                  className="w-full mt-1 py-2 px-3 text-xs font-bold text-amber-900 bg-amber-100/70 hover:bg-amber-200/70 rounded-xl flex items-center justify-center gap-1.5 transition"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span>{t('nav.logout', 'Logout')}</span>
+                  <KeyRound className="w-3.5 h-3.5 text-amber-700" />
+                  <span>{t('auth.changePassword', 'Change Password')}</span>
                 </button>
               </div>
             ) : (
@@ -273,6 +298,12 @@ export default function Navbar() {
           </div>
         </div>
       )}
+
+      {/* Self-service change password modal */}
+      <ChangePasswordModal
+        isOpen={passwordModalOpen}
+        onClose={() => setPasswordModalOpen(false)}
+      />
     </header>
   );
 }

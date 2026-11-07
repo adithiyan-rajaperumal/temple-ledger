@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Landmark, Lock, User, Eye, EyeOff, LogIn, AlertCircle, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Landmark, Lock, User, Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
 import { login, isAuthenticated } from '../services/auth';
 
 export default function Login() {
@@ -45,12 +45,6 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleQuickFill = (u, p) => {
-    setUsername(u);
-    setPassword(p);
-    setError('');
   };
 
   return (
@@ -143,40 +137,8 @@ export default function Login() {
           </button>
         </form>
 
-        {/* Quick Demo Credentials */}
-        <div className="mt-6 pt-5 border-t border-slate-100">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 mb-2.5">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            <span>{t('auth.demoHint', 'Quick Demo Access')}</span>
-          </div>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <button
-              type="button"
-              onClick={() => handleQuickFill('admin', 'admin123')}
-              className="p-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-xl text-left transition"
-            >
-              <div className="font-bold flex items-center justify-between">
-                <span>Super Admin</span>
-                <CheckCircle2 className="w-3.5 h-3.5 text-amber-600" />
-              </div>
-              <div className="text-[11px] text-amber-700 mt-0.5">admin / admin123</div>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickFill('operator1', 'operator123')}
-              className="p-2.5 bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 rounded-xl text-left transition"
-            >
-              <div className="font-bold flex items-center justify-between">
-                <span>Data Entry</span>
-                <CheckCircle2 className="w-3.5 h-3.5 text-slate-500" />
-              </div>
-              <div className="text-[11px] text-slate-600 mt-0.5">operator1 / operator123</div>
-            </button>
-          </div>
-        </div>
-
         {/* Back to Public Dashboard */}
-        <div className="mt-5 text-center">
+        <div className="mt-6 text-center">
           <Link
             to="/"
             className="text-xs text-slate-500 hover:text-amber-700 font-medium transition"
