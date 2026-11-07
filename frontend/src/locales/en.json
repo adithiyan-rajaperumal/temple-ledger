@@ -1,5 +1,6 @@
 {
-  "appTitle": "1008 Sri Vrishabhanatha Jinalayam, Othalavadi",
+  "appTitle": "1008 Sri Vrishabhanatha Jinalayam",
+  "templeLocation": "Othalavadi",
   "dashboard": "Transparency Dashboard",
   "drives": "Family Drives",
   "transactions": "Master Transactions",
@@ -28,8 +29,8 @@
   "partial": "Partial",
   "pending": "Pending",
   "nav": {
-    "appTitle": "1008 Sri Vrishabhanatha Jinalayam, Othalavadi",
-    "appSubtitle": "Othalavadi, Tiruvannamalai Dist 632326 • othalavadi-jinalayam.in",
+    "appTitle": "1008 Sri Vrishabhanatha Jinalayam",
+    "appSubtitle": "Othalavadi",
     "dashboard": "Transparency Dashboard",
     "drives": "Family Drives",
     "transactions": "Master Transactions",
@@ -331,7 +332,8 @@
   "admin": {
     "portalSubtitle": "Authenticated Management & Data Entry Portal",
     "operations": "Operations",
-    "recordDonation": "Record Donation",
+    "familyContributions": "Family Contributions",
+    "recordDonation": "Devotee Donation",
     "recordExpense": "Record Expense",
     "pledges": "Devotee Pledges",
     "drives": "Drive Configuration",

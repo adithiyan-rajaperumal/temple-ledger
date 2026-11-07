@@ -53,68 +53,16 @@ public class DonationService {
 
     @Transactional
     public DonationReceiptResponse recordDonation(CreateDonationRequest request, String username) {
-        log.info("Recording donation for donor: {}, mode: {}", request.getDonorName(), request.getPaymentMode());
+        log.info("Recording donation, mode: {}, donorSource: {}", request.getPaymentMode(), request.getDonorSource());
 
-        // 1. Validation
         if (request.getPaymentMode() == null) {
             throw new IllegalArgumentException("Payment mode cannot be null");
-        }
-        if (request.getDonorName() == null || request.getDonorName().isBlank()) {
-            throw new IllegalArgumentException("Donor name cannot be blank");
         }
 
         LocalDate donationDate = request.getDonationDate() != null ? request.getDonationDate() : LocalDate.now();
         String operator = (username != null && !username.isBlank()) ? username : "system";
 
-        BigDecimal finalAmount;
-        if (request.getPaymentMode() == PaymentMode.CASH) {
-            boolean hasSeparate = (request.getBookNo() != null && !request.getBookNo().isBlank())
-                    && (request.getManualReceiptNo() != null && !request.getManualReceiptNo().isBlank());
-            boolean hasCombined = request.getPhysicalBookReceiptNo() != null && !request.getPhysicalBookReceiptNo().isBlank();
-            if (!hasSeparate && !hasCombined) {
-                if (request.getBookNo() == null || request.getBookNo().isBlank()) {
-                    throw new IllegalArgumentException("Physical donation book receipt number is mandatory for cash donations");
-                }
-                if (request.getManualReceiptNo() == null || request.getManualReceiptNo().isBlank()) {
-                    throw new IllegalArgumentException("Physical receipt slip number is mandatory for cash donations");
-                }
-                throw new IllegalArgumentException("Physical book receipt number is mandatory for cash donations");
-            }
-            if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("Donation amount must be greater than zero");
-            }
-            finalAmount = request.getAmount();
-        } else if (request.getPaymentMode() == PaymentMode.GPAY_ONLINE) {
-            if (request.getGpayTransactionId() == null || request.getGpayTransactionId().isBlank()) {
-                throw new IllegalArgumentException("GPay transaction ID is mandatory for online donations");
-            }
-            String txnId = request.getGpayTransactionId().trim();
-            if (donationRepository.existsByGpayTransactionId(txnId)) {
-                throw new IllegalArgumentException("Donation with GPay transaction ID already exists: " + txnId);
-            }
-            if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("Donation amount must be greater than zero");
-            }
-            finalAmount = request.getAmount();
-        } else if (request.getPaymentMode() == PaymentMode.IN_KIND) {
-            if (request.getItemCategory() == null || request.getItemCategory().isBlank()) {
-                throw new IllegalArgumentException("Item category is mandatory for in-kind donations");
-            }
-            if (request.getQuantity() == null || request.getQuantity().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("In-kind quantity must be greater than zero");
-            }
-            if (request.getUnit() == null || request.getUnit().isBlank()) {
-                throw new IllegalArgumentException("Unit is mandatory for in-kind donations");
-            }
-            if (request.getApproximateUnitRate() == null || request.getApproximateUnitRate().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("Approximate unit rate must be greater than zero");
-            }
-            finalAmount = request.getQuantity().multiply(request.getApproximateUnitRate());
-        } else {
-            throw new IllegalArgumentException("Unsupported payment mode: " + request.getPaymentMode());
-        }
-
-        // 2. Resolve Relationships
+        // 1. Resolve Relationships First
         Family family = null;
         if (request.getFamilyId() != null) {
             family = familyRepository.findById(request.getFamilyId())
@@ -144,6 +92,76 @@ public class DonationService {
             donorSource = (drive != null || family != null)
                     ? DonationSource.VILLAGE_FAMILY_DRIVE
                     : DonationSource.GENERAL_PUBLIC;
+        }
+
+        boolean isFamilyContribution = (donorSource == DonationSource.VILLAGE_FAMILY_DRIVE || family != null);
+
+        String donorName = (request.getDonorName() != null && !request.getDonorName().isBlank())
+                ? request.getDonorName().trim()
+                : (family != null ? family.getHeadName() : null);
+
+        if (donorName == null || donorName.isBlank()) {
+            throw new IllegalArgumentException("Donor name cannot be blank");
+        }
+
+        String donorNameTa = (request.getDonorNameTa() != null && !request.getDonorNameTa().isBlank())
+                ? request.getDonorNameTa().trim()
+                : (family != null ? family.getHeadNameTa() : null);
+
+        // 2. Validate Payment Mode & Amounts
+        BigDecimal finalAmount;
+        if (request.getPaymentMode() == PaymentMode.CASH) {
+            // Village Family Contributions do NOT have physical receipt donation books
+            if (!isFamilyContribution) {
+                boolean hasSeparate = (request.getBookNo() != null && !request.getBookNo().isBlank())
+                        && (request.getManualReceiptNo() != null && !request.getManualReceiptNo().isBlank());
+                boolean hasCombined = request.getPhysicalBookReceiptNo() != null && !request.getPhysicalBookReceiptNo().isBlank();
+                if (!hasSeparate && !hasCombined) {
+                    if (request.getBookNo() == null || request.getBookNo().isBlank()) {
+                        throw new IllegalArgumentException("Physical donation book receipt number is mandatory for cash donations");
+                    }
+                    if (request.getManualReceiptNo() == null || request.getManualReceiptNo().isBlank()) {
+                        throw new IllegalArgumentException("Physical receipt slip number is mandatory for cash donations");
+                    }
+                    throw new IllegalArgumentException("Physical book receipt number is mandatory for cash donations");
+                }
+            }
+            if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Donation amount must be greater than zero");
+            }
+            finalAmount = request.getAmount();
+        } else if (request.getPaymentMode() == PaymentMode.GPAY_ONLINE) {
+            if (!isFamilyContribution) {
+                if (request.getGpayTransactionId() == null || request.getGpayTransactionId().isBlank()) {
+                    throw new IllegalArgumentException("GPay transaction ID is mandatory for online donations");
+                }
+            }
+            if (request.getGpayTransactionId() != null && !request.getGpayTransactionId().isBlank()) {
+                String txnId = request.getGpayTransactionId().trim();
+                if (donationRepository.existsByGpayTransactionId(txnId)) {
+                    throw new IllegalArgumentException("Donation with GPay transaction ID already exists: " + txnId);
+                }
+            }
+            if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Donation amount must be greater than zero");
+            }
+            finalAmount = request.getAmount();
+        } else if (request.getPaymentMode() == PaymentMode.IN_KIND) {
+            if (request.getItemCategory() == null || request.getItemCategory().isBlank()) {
+                throw new IllegalArgumentException("Item category is mandatory for in-kind donations");
+            }
+            if (request.getQuantity() == null || request.getQuantity().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("In-kind quantity must be greater than zero");
+            }
+            if (request.getUnit() == null || request.getUnit().isBlank()) {
+                throw new IllegalArgumentException("Unit is mandatory for in-kind donations");
+            }
+            if (request.getApproximateUnitRate() == null || request.getApproximateUnitRate().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Approximate unit rate must be greater than zero");
+            }
+            finalAmount = request.getQuantity().multiply(request.getApproximateUnitRate());
+        } else {
+            throw new IllegalArgumentException("Unsupported payment mode: " + request.getPaymentMode());
         }
 
         // 3. Generate Receipt Number
@@ -179,7 +197,7 @@ public class DonationService {
         );
 
         String jeDescription = String.format("Donation from %s (%s, %s)",
-                request.getDonorName(), request.getPaymentMode(), receiptNo);
+                donorName, request.getPaymentMode(), receiptNo);
 
         JournalEntry journalEntry = accountingEngineService.createBalancedJournalEntry(
                 donationDate,
@@ -210,8 +228,8 @@ public class DonationService {
                 .family(family)
                 .drive(drive)
                 .pledge(pledge)
-                .donorName(request.getDonorName())
-                .donorNameTa(request.getDonorNameTa())
+                .donorName(donorName)
+                .donorNameTa(donorNameTa)
                 .village(effectiveArea)
                 .area(effectiveArea)
                 .state(effectiveState)

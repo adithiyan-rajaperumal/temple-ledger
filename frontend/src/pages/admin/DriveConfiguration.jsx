@@ -57,7 +57,7 @@ export default function DriveConfiguration() {
   const [newFamilyHeadNameTa, setNewFamilyHeadNameTa] = useState('');
   const [newFamilyDoorNo, setNewFamilyDoorNo] = useState('');
   const [newFamilyStreet, setNewFamilyStreet] = useState('');
-  const [newFamilyVillage, setNewFamilyVillage] = useState('Main Village');
+  const [newFamilyVillage, setNewFamilyVillage] = useState('ஓதலவாடி');
   const [newFamilyPhone, setNewFamilyPhone] = useState('');
 
   // Edit Allocation Modal / State

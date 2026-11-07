@@ -8,6 +8,7 @@ import {
   Flag,
   HardHat,
   Users2,
+  Users,
   History,
   ShieldCheck,
   UserCheck,
@@ -44,17 +45,24 @@ export default function AdminLayout() {
 
   const navItems = [
     {
+      to: '/admin/family-contributions',
+      icon: Users,
+      labelKey: 'admin.familyContributions',
+      defaultLabel: 'Family Contributions',
+      subLabel: 'கிராம குடும்ப வரி',
+    },
+    {
       to: '/admin/donations',
       icon: FilePlus,
       labelKey: 'admin.recordDonation',
-      defaultLabel: 'Record Donation',
-      subLabel: 'நன்கொடை பதிவு',
+      defaultLabel: 'Devotee Donation',
+      subLabel: 'பொது நன்கொடை',
     },
     {
       to: '/admin/expenses',
       icon: Receipt,
       labelKey: 'admin.recordExpense',
-      defaultLabel: 'Record Expense',
+      defaultLabel: 'Disbursements',
       subLabel: 'செலவு பதிவு',
     },
     {

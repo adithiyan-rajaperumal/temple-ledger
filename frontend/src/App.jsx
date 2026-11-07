@@ -12,6 +12,7 @@ import ReceiptModal from './components/ReceiptModal';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './pages/admin/AdminLayout';
+import FamilyContributionEntry from './pages/admin/FamilyContributionEntry';
 import DonationEntry from './pages/admin/DonationEntry';
 import ExpenseEntry from './pages/admin/ExpenseEntry';
 import PledgeManagement from './pages/admin/PledgeManagement';
@@ -61,7 +62,8 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<Navigate to="/admin/donations" replace />} />
+              <Route index element={<Navigate to="/admin/family-contributions" replace />} />
+              <Route path="family-contributions" element={<FamilyContributionEntry />} />
               <Route path="donations" element={<DonationEntry />} />
               <Route path="expenses" element={<ExpenseEntry />} />
               <Route path="pledges" element={<PledgeManagement />} />
@@ -92,8 +94,8 @@ export default function App() {
           </Routes>
         </main>
         <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} {t('receipt.title')} • {t('nav.appTitle')}</p>
-          <p className="mt-1 text-slate-400">{t('dashboard.subtitle')}</p>
+          <p className="font-semibold text-slate-700">© {new Date().getFullYear()} {t('receipt.title')}</p>
+          <p className="mt-1 text-slate-400">ஓதலவாடி, திருவண்ணாமலை மாவட்டம், தமிழ்நாடு 632326 • othalavadi-jinalayam.in</p>
         </footer>
       </div>
     </BrowserRouter>

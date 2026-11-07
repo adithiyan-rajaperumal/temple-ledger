@@ -27,6 +27,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const currentLang = i18n.language ? i18n.language.split('-')[0] : 'en';
+  const isTamil = currentLang === 'ta';
 
   const [authed, setAuthed] = useState(isAuthenticated());
   const [user, setUser] = useState(getCurrentUser());

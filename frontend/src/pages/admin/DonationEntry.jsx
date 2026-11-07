@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Banknote,
@@ -16,7 +17,9 @@ import {
   HeartHandshake,
   Printer,
   Sparkles,
-  Target
+  Target,
+  Users,
+  ArrowRight
 } from 'lucide-react';
 import {
   recordDonation,
@@ -466,6 +469,32 @@ export default function DonationEntry() {
             'Issue digital receipts, attach to family drives or pledges, and print/WhatsApp instant receipts.'
           )}
         </p>
+      </div>
+
+      {/* Quick link to Family Contribution */}
+      <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <Users className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">
+              {i18n.language?.startsWith('ta') ? 'கிராம குடும்ப வரி வசூலா?' : 'Recording Village Family Contribution?'}
+            </h3>
+            <p className="text-xs text-slate-600">
+              {i18n.language?.startsWith('ta')
+                ? 'குடும்ப வரிக்கு ரசீது புத்தகம் தேவையில்லை. பிரத்யேக குடும்ப வரி வசூல் பக்கத்திற்கு செல்லவும்.'
+                : 'No physical receipt book required for village families. Use the dedicated Family Contribution screen.'}
+            </p>
+          </div>
+        </div>
+        <Link
+          to="/admin/family-contributions"
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-600 text-white hover:bg-amber-700 transition shadow-xs shrink-0"
+        >
+          <span>{i18n.language?.startsWith('ta') ? 'குடும்ப வரி வசூல் பக்கம்' : 'Go to Family Contribution'}</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
       </div>
 
       {/* Success Notification Banner */}
