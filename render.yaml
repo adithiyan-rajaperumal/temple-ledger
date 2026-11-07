@@ -35,9 +35,9 @@ services:
       - key: JWT_SECRET
         generateValue: true
 
-      # Allowed CORS Origins: Cloudflare Pages wildcard & local dev environments
+      # Allowed CORS Origins: Vercel, Cloudflare Pages wildcard & local dev environments
       - key: CORS_ALLOWED_ORIGINS
-        value: http://localhost:5173,http://localhost:3000,https://*.pages.dev
+        value: http://localhost:5173,http://localhost:3000,https://*.pages.dev,https://*.vercel.app
 
       # Memory & Performance Flags for Containerized JVM Runtime
       - key: JAVA_OPTS
