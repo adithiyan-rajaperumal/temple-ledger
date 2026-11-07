@@ -140,19 +140,23 @@ await i18next.init({
 });
 
 // Test English translations
-assert.strictEqual(i18next.t('appTitle'), 'Temple & Community Ledger');
+assert.strictEqual(i18next.t('appTitle'), '1008 Sri Vrishabhanatha Jinalayam, Othalavadi');
 assert.strictEqual(i18next.t('metrics.spendableCash'), 'Spendable Cash & Bank Balance');
 assert.strictEqual(i18next.t('categories.renovationMaterials'), 'Renovation Materials');
 
 // Switch to Tamil
 await i18next.changeLanguage('ta');
-assert.strictEqual(i18next.t('appTitle'), 'கோவில் & கிராம பேரேடு');
+assert.strictEqual(i18next.t('appTitle'), '1008 ஸ்ரீ விருஷபநாத ஜிநாலயம், ஒத்தலவாடி');
 assert.strictEqual(i18next.t('metrics.spendableCash'), 'கையிருப்பு ரொக்கம் & வங்கி இருப்பு');
 assert.strictEqual(i18next.t('categories.renovationMaterials'), 'கட்டுமான பொருட்கள்');
 
+// Verify 'பேரேடு' does NOT appear in ta translations
+const taJsonString = JSON.stringify(ta);
+assert.strictEqual(taJsonString.includes('பேரேடு'), false, 'ta.json must not contain legacy word பேரேடு');
+
 // Switch back to English
 await i18next.changeLanguage('en');
-assert.strictEqual(i18next.t('appTitle'), 'Temple & Community Ledger');
+assert.strictEqual(i18next.t('appTitle'), '1008 Sri Vrishabhanatha Jinalayam, Othalavadi');
 assert.strictEqual(i18next.t('metrics.spendableCash'), 'Spendable Cash & Bank Balance');
 
 console.log('✓ Dynamic language switching (EN <-> தமிழ்) verified successfully');
