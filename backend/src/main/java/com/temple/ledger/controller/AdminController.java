@@ -5,6 +5,7 @@ import com.temple.ledger.domain.community.Drive;
 import com.temple.ledger.domain.community.DriveFamilyAllocation;
 import com.temple.ledger.domain.community.Family;
 import com.temple.ledger.domain.security.User;
+import com.temple.ledger.dto.security.AdminResetPasswordRequest;
 import com.temple.ledger.dto.security.CreateUserRequest;
 import com.temple.ledger.dto.security.UserResponse;
 import com.temple.ledger.service.AuditService;
@@ -56,6 +57,16 @@ public class AdminController {
     @GetMapping("/users")
     public ResponseEntity<List<UserResponse>> listUsers() {
         return ResponseEntity.ok(userService.listUsers());
+    }
+
+    @PatchMapping("/users/{userId}/password")
+    public ResponseEntity<Void> resetPassword(
+            @PathVariable UUID userId,
+            @Valid @RequestBody AdminResetPasswordRequest request,
+            Authentication authentication) {
+        String adminUsername = authentication != null ? authentication.getName() : "SUPER_ADMIN";
+        userService.adminResetPassword(userId, request, adminUsername);
+        return ResponseEntity.noContent().build();
     }
 
     // --- Drive Management ---

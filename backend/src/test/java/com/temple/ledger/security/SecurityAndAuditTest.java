@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.temple.ledger.domain.audit.AuditLog;
 import com.temple.ledger.domain.security.User;
 import com.temple.ledger.domain.security.UserRole;
+import com.temple.ledger.dto.security.AdminResetPasswordRequest;
+import com.temple.ledger.dto.security.ChangePasswordRequest;
 import com.temple.ledger.dto.security.CreateUserRequest;
 import com.temple.ledger.dto.security.LoginRequest;
 import com.temple.ledger.service.AuditService;
@@ -28,6 +30,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -335,5 +338,114 @@ class SecurityAndAuditTest {
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.content.length()").value(org.hamcrest.Matchers.greaterThanOrEqualTo(2)))
                 .andExpect(jsonPath("$.content[0].entityName").value("TEST_ENTITY"));
+    }
+
+    @Test
+    @DisplayName("Custom Super Admin adithiyan1 authenticates with Mahaveer2024@")
+    void testCustomSuperAdminLogin() throws Exception {
+        LoginRequest request = LoginRequest.builder()
+                .username("adithiyan1")
+                .password("Mahaveer2024@")
+                .build();
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").isString())
+                .andExpect(jsonPath("$.username").value("adithiyan1"))
+                .andExpect(jsonPath("$.role").value("ROLE_SUPER_ADMIN"));
+    }
+
+    @Test
+    @DisplayName("Authenticated user can change own password")
+    void testChangePasswordSelfService() throws Exception {
+        // Create a test user
+        CreateUserRequest createReq = CreateUserRequest.builder()
+                .username("changeuser1")
+                .password("oldSecret123")
+                .fullName("Change User")
+                .role(UserRole.ROLE_DATA_ENTRY)
+                .build();
+        userService.createUser(createReq, "admin");
+
+        String userToken = jwtTokenProvider.generateToken("changeuser1", UserRole.ROLE_DATA_ENTRY.name());
+
+        ChangePasswordRequest changeReq = ChangePasswordRequest.builder()
+                .currentPassword("oldSecret123")
+                .newPassword("newSecret456")
+                .build();
+
+        mockMvc.perform(post("/api/v1/auth/change-password")
+                        .header("Authorization", "Bearer " + userToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(changeReq)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Password changed successfully"));
+
+        // Verify login with new password
+        LoginRequest newLogin = LoginRequest.builder()
+                .username("changeuser1")
+                .password("newSecret456")
+                .build();
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newLogin)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Super Admin can reset another user's password")
+    void testSuperAdminResetPassword() throws Exception {
+        // Create user
+        CreateUserRequest createReq = CreateUserRequest.builder()
+                .username("resetuser1")
+                .password("initial123")
+                .fullName("Reset User")
+                .role(UserRole.ROLE_DATA_ENTRY)
+                .build();
+        User targetUser = userService.createUser(createReq, "admin");
+
+        AdminResetPasswordRequest resetReq = AdminResetPasswordRequest.builder()
+                .newPassword("adminSetSecret999")
+                .build();
+
+        mockMvc.perform(patch("/api/v1/admin/users/" + targetUser.getId() + "/password")
+                        .header("Authorization", "Bearer " + superAdminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(resetReq)))
+                .andExpect(status().isNoContent());
+
+        // Verify login with new password
+        LoginRequest loginWithReset = LoginRequest.builder()
+                .username("resetuser1")
+                .password("adminSetSecret999")
+                .build();
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginWithReset)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("DATA_ENTRY role is forbidden from resetting user password")
+    void testDataEntryForbiddenOnResetPassword() throws Exception {
+        CreateUserRequest createReq = CreateUserRequest.builder()
+                .username("targetuser2")
+                .password("initial123")
+                .fullName("Target User 2")
+                .role(UserRole.ROLE_DATA_ENTRY)
+                .build();
+        User targetUser = userService.createUser(createReq, "admin");
+
+        AdminResetPasswordRequest resetReq = AdminResetPasswordRequest.builder()
+                .newPassword("forbiddenPassword123")
+                .build();
+
+        mockMvc.perform(patch("/api/v1/admin/users/" + targetUser.getId() + "/password")
+                        .header("Authorization", "Bearer " + dataEntryToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(resetReq)))
+                .andExpect(status().isForbidden());
     }
 }

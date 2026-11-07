@@ -2,7 +2,9 @@ package com.temple.ledger.service;
 
 import com.temple.ledger.domain.security.User;
 import com.temple.ledger.domain.security.UserRole;
+import com.temple.ledger.dto.security.AdminResetPasswordRequest;
 import com.temple.ledger.dto.security.AuthResponse;
+import com.temple.ledger.dto.security.ChangePasswordRequest;
 import com.temple.ledger.dto.security.CreateUserRequest;
 import com.temple.ledger.dto.security.LoginRequest;
 import com.temple.ledger.dto.security.UserResponse;
@@ -41,9 +43,21 @@ public class UserService implements ApplicationRunner {
 
     @Transactional
     public void initDefaultAdmin() {
-        if (userRepository.count() == 0) {
-            log.info("No users found in database. Initializing default Super Admin account (admin / admin123)...");
+        if (!userRepository.existsByUsername("adithiyan1")) {
+            log.info("Initializing custom Super Admin account (adithiyan1)...");
             User superAdmin = User.builder()
+                    .username("adithiyan1")
+                    .passwordHash(passwordEncoder.encode("Mahaveer2024@"))
+                    .fullName("Adithiyan (Super Admin)")
+                    .role(UserRole.ROLE_SUPER_ADMIN)
+                    .isActive(true)
+                    .createdAt(Instant.now())
+                    .build();
+            userRepository.save(superAdmin);
+            log.info("Super Admin adithiyan1 successfully initialized.");
+        }
+        if (!userRepository.existsByUsername("admin")) {
+            User admin = User.builder()
                     .username("admin")
                     .passwordHash(passwordEncoder.encode("admin123"))
                     .fullName("System Super Admin")
@@ -51,8 +65,7 @@ public class UserService implements ApplicationRunner {
                     .isActive(true)
                     .createdAt(Instant.now())
                     .build();
-            userRepository.save(superAdmin);
-            log.info("Default Super Admin successfully initialized.");
+            userRepository.save(admin);
         }
     }
 
@@ -118,6 +131,52 @@ public class UserService implements ApplicationRunner {
         return userRepository.findAll().stream()
                 .map(this::toUserResponse)
                 .toList();
+    }
+
+    @Transactional
+    public void changePassword(String username, ChangePasswordRequest request) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BadCredentialsException("User not found"));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+            throw new BadCredentialsException("Current password does not match");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        auditService.logAction(
+                "USER",
+                user.getId().toString(),
+                "UPDATE_PASSWORD",
+                username,
+                null,
+                null,
+                null,
+                "User changed own password"
+        );
+        log.info("Password successfully changed for user: '{}'", username);
+    }
+
+    @Transactional
+    public void adminResetPassword(java.util.UUID userId, AdminResetPasswordRequest request, String adminUsername) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        auditService.logAction(
+                "USER",
+                user.getId().toString(),
+                "RESET_PASSWORD",
+                adminUsername,
+                null,
+                null,
+                null,
+                "Super Admin reset password for user: " + user.getUsername()
+        );
+        log.info("Password for user '{}' reset by Super Admin '{}'", user.getUsername(), adminUsername);
     }
 
     public UserResponse toUserResponse(User user) {
