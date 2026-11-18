@@ -16,15 +16,17 @@ import {
   Sparkles,
   ArrowRight,
   Receipt,
-  Check
+  Check,
+  Eye
 } from 'lucide-react';
 import {
   getPublicDrives,
   getDriveFamilyProgress,
-  recordDonation
+  recordDonation,
+  getTransactions
 } from '../../services/api';
 import ReceiptModal from '../../components/ReceiptModal';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatDate } from '../../utils/formatters';
 
 export default function FamilyContributionEntry() {
   const { t, i18n } = useTranslation();
@@ -55,6 +57,31 @@ export default function FamilyContributionEntry() {
   const [errorMessage, setErrorMessage] = useState('');
   const [successReceipt, setSuccessReceipt] = useState(null);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
+
+  // Family Past Installments History
+  const [installments, setInstallments] = useState([]);
+  const [loadingInstallments, setLoadingInstallments] = useState(false);
+  const [viewReceiptNo, setViewReceiptNo] = useState(null);
+
+  const loadFamilyInstallments = async (family) => {
+    if (!family) {
+      setInstallments([]);
+      return;
+    }
+    setLoadingInstallments(true);
+    try {
+      const res = await getTransactions({
+        search: family.familyCode || family.headName,
+        size: 50,
+      });
+      setInstallments(res?.content || []);
+    } catch (err) {
+      console.error('Failed to load family installments:', err);
+      setInstallments([]);
+    } finally {
+      setLoadingInstallments(false);
+    }
+  };
 
   // Load drives on mount
   useEffect(() => {
@@ -133,6 +160,7 @@ export default function FamilyContributionEntry() {
   const handleSelectFamily = (family) => {
     setSelectedFamily(family);
     setErrorMessage('');
+    loadFamilyInstallments(family);
     // Pre-fill amount with remaining balance if positive
     if (family.balanceAmount && Number(family.balanceAmount) > 0) {
       setAmount(String(family.balanceAmount));
@@ -195,8 +223,9 @@ export default function FamilyContributionEntry() {
       setGpayTransactionId('');
       setNotes('');
 
-      // Refresh families from drive
+      // Refresh families from drive and reload installments
       await loadDriveFamilies(selectedDriveId);
+      await loadFamilyInstallments(selectedFamily);
     } catch (err) {
       console.error('Failed to record family contribution', err);
       setErrorMessage(err.message || 'Failed to record contribution');
@@ -477,6 +506,65 @@ export default function FamilyContributionEntry() {
                     </div>
                   </div>
                 </div>
+
+                {/* Past Installments Breakdown */}
+                {selectedFamily.paidAmount > 0 && (
+                  <div className="mt-4 pt-3 border-t border-amber-200/70">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                        <Receipt className="w-3.5 h-3.5 text-amber-700" />
+                        <span>{isTamil ? 'செலுத்திய தவணைகள் விவரம்' : 'Paid Installments History'}</span>
+                        <span className="text-[11px] font-mono font-normal text-slate-500">
+                          ({installments.length})
+                        </span>
+                      </span>
+                    </div>
+                    {loadingInstallments ? (
+                      <div className="py-2 text-center text-xs text-slate-400">
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin inline mr-1" />
+                        <span>{isTamil ? 'தவணைகள் ஏற்றப்படுகின்றன...' : 'Loading installments...'}</span>
+                      </div>
+                    ) : installments.length === 0 ? (
+                      <p className="text-xs text-slate-500 italic">
+                        {isTamil ? 'தவணைகள் விவரம் கிடைக்கவில்லை' : 'No individual receipts found'}
+                      </p>
+                    ) : (
+                      <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
+                        {installments.map((inst) => (
+                          <div
+                            key={inst.id || inst.referenceNo}
+                            className="flex items-center justify-between p-2 rounded-xl bg-white/90 border border-amber-100 text-xs shadow-2xs"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-bold text-slate-800">
+                                {inst.referenceNo}
+                              </span>
+                              <span className="text-slate-400 text-[11px]">
+                                • {formatDate(inst.date)}
+                              </span>
+                              <span className="px-1.5 py-0.2 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
+                                {inst.paymentMode === 'CASH' ? (isTamil ? 'ரொக்கம்' : 'Cash') : 'GPay'}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-bold text-emerald-700">
+                                ₹{formatCurrency(inst.amount)}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setViewReceiptNo(inst.referenceNo)}
+                                className="p-1 rounded-lg text-amber-700 hover:bg-amber-100 transition"
+                                title={isTamil ? 'ரசீதை பார்க்க / அச்சிட' : 'View / Print Receipt'}
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Form */}
@@ -703,14 +791,16 @@ export default function FamilyContributionEntry() {
         </div>
       </div>
 
-      {/* Instant Digital Receipt Modal */}
-      {showReceiptModal && successReceipt && (
+      {/* Digital Receipt Modal (Newly Issued or Past Installment) */}
+      {(showReceiptModal || !!viewReceiptNo) && (
         <ReceiptModal
-          isOpen={showReceiptModal}
+          isOpen={showReceiptModal || !!viewReceiptNo}
           receiptData={successReceipt}
+          receiptNo={viewReceiptNo}
           onClose={() => {
             setShowReceiptModal(false);
             setSuccessReceipt(null);
+            setViewReceiptNo(null);
           }}
         />
       )}
