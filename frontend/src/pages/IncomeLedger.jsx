@@ -377,8 +377,8 @@ export default function IncomeLedger() {
         <div>
           <div className="flex items-center space-x-2">
             <TrendingUp className="w-6 h-6 text-emerald-600" />
-            <h1 className="text-2xl font-bold text-slate-900">
-              {isTamil ? 'வரவுகள் பேரேடு' : 'Income & Inflows Ledger'}
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
+              {isTamil ? 'வரவுகள் விவரம்' : 'Income & Inflows Ledger'}
             </h1>
           </div>
           <p className="mt-1 text-sm text-slate-500">

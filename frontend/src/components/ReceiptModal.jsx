@@ -221,7 +221,7 @@ export default function ReceiptModal({
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-50 border border-amber-200 text-amber-600 mb-2">
                   <Building2 className="w-6 h-6" />
                 </div>
-                <h2 className="text-lg sm:text-xl font-bold text-slate-900 leading-tight">
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900 leading-normal">
                   1008 ஸ்ரீ விருஷபநாத ஜிநாலயம்
                 </h2>
                 <h3 className="text-sm font-semibold text-slate-700 mt-0.5">
@@ -299,10 +299,10 @@ export default function ReceiptModal({
 
               {/* Amount Highlight */}
               <div className="py-5 bg-gradient-to-r from-amber-50/50 via-slate-50 to-amber-50/50 rounded-xl my-4 px-4 text-center border border-amber-100/60">
-                <span className="text-xs text-slate-500 uppercase tracking-wider block font-medium">
+                <span className="text-xs text-slate-500 block font-medium">
                   {isExpenseVoucher ? t('tables.amount') : t('receipt.theSumOf')}
                 </span>
-                <span className="text-2xl sm:text-3xl font-extrabold text-emerald-700 tracking-tight block mt-1">
+                <span className="text-2xl sm:text-3xl font-extrabold text-emerald-700 block mt-1">
                   {formattedAmount}
                 </span>
                 <p className="text-xs text-slate-500 mt-1 italic">

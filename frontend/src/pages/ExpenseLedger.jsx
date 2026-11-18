@@ -263,8 +263,8 @@ export default function ExpenseLedger() {
         <div>
           <div className="flex items-center space-x-2">
             <TrendingDown className="w-6 h-6 text-rose-600" />
-            <h1 className="text-2xl font-bold text-slate-900">
-              {isTamil ? 'செலவுகள் பேரேடு' : 'Expenses & Outflows Ledger'}
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
+              {isTamil ? 'செலவுகள் விவரம்' : 'Expenses & Outflows Ledger'}
             </h1>
           </div>
           <p className="mt-1 text-sm text-slate-500">

@@ -85,35 +85,35 @@ export default function MetricCard({
 
   return (
     <div
-      className={`relative overflow-hidden bg-white rounded-xl p-5 border ${variant.border} shadow-2xs hover:shadow-md transition-all duration-200 group flex flex-col justify-between`}
+      className={`relative overflow-hidden bg-white rounded-xl p-4 sm:p-5 border ${variant.border} shadow-2xs hover:shadow-md transition-all duration-200 group flex flex-col justify-between`}
     >
       {/* Subtle top indicator bar */}
       <div className={`absolute top-0 left-0 right-0 h-1 ${variant.accentBar}`} />
 
       <div>
         <div className="flex items-center justify-between">
-          <div className={`p-2.5 rounded-lg border ${variant.iconBg} group-hover:scale-105 transition-transform duration-200`}>
-            {Icon && <Icon className="w-5 h-5" />}
+          <div className={`p-2 sm:p-2.5 rounded-lg border ${variant.iconBg} group-hover:scale-105 transition-transform duration-200`}>
+            {Icon && <Icon className="w-4 h-4 sm:w-5 sm:h-5" />}
           </div>
           {badge && (
-            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-md border ${variant.badge}`}>
+            <span className={`text-[11px] sm:text-xs font-semibold px-2 sm:px-2.5 py-0.5 rounded-md border ${variant.badge}`}>
               {badge}
             </span>
           )}
         </div>
 
-        <div className="mt-4">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider line-clamp-1">
+        <div className="mt-3 sm:mt-4">
+          <p className="text-xs font-semibold text-slate-500 leading-snug line-clamp-2 min-h-[2.5rem]">
             {title}
           </p>
-          <p className={`text-2xl sm:text-3xl font-extrabold tracking-tight mt-1.5 ${variant.valueColor}`}>
+          <p className={`text-xl sm:text-2xl lg:text-3xl font-extrabold mt-1 break-all ${variant.valueColor}`}>
             {formattedValue}
           </p>
         </div>
       </div>
 
       {subtitle && (
-        <p className="text-xs text-slate-500 mt-3 pt-3 border-t border-slate-100 line-clamp-2">
+        <p className="text-[11px] sm:text-xs text-slate-500 mt-2.5 pt-2.5 border-t border-slate-100 line-clamp-2">
           {subtitle}
         </p>
       )}

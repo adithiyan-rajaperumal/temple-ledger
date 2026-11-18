@@ -79,7 +79,7 @@ export default function PublicDashboard() {
   return (
     <div className="space-y-8">
       {/* Hero Welcome & Transparency Banner */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-amber-600 via-orange-600 to-amber-700 rounded-2xl p-6 sm:p-8 text-white shadow-lg">
+      <section className="relative overflow-hidden bg-gradient-to-br from-amber-600 via-orange-600 to-amber-700 rounded-2xl p-4 sm:p-6 lg:p-8 text-white shadow-lg">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="max-w-3xl space-y-3">
             <div className="inline-flex flex-wrap items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-xs text-xs font-semibold">
@@ -89,7 +89,7 @@ export default function PublicDashboard() {
               <span>{formatDate(lastUpdated, isTa ? 'ta-IN' : 'en-IN')}</span>
             </div>
 
-            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight">
+            <h1 className="text-xl sm:text-3xl lg:text-4xl font-extrabold leading-snug">
               {t('receipt.title')}
             </h1>
 

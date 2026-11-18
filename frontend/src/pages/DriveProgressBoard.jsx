@@ -271,7 +271,7 @@ export default function DriveProgressBoard() {
           <div>
             <div className="flex items-center space-x-2">
               <Users className="w-6 h-6 text-amber-600" />
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900">
                 {isTamil ? 'கிராம குடும்ப பங்களிப்பு பலகை' : 'Village Family Contribution Board'}
               </h1>
             </div>

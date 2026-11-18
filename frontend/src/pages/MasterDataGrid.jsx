@@ -301,13 +301,13 @@ export default function MasterDataGrid() {
           <div>
             <div className="flex items-center space-x-2">
               <FileSpreadsheet className="w-6 h-6 text-amber-600" />
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900">
                 {isTamil ? 'முழு வரவு செலவு கணக்கு' : 'Complete Community Ledger'}
               </h1>
             </div>
             <p className="mt-1 text-xs sm:text-sm text-slate-500">
               {isTamil
-                ? 'கோவிலின் அனைத்து நிதி வரவுகள், செலவுகள் மற்றும் பொருள் நன்கொடைகளின் நேரலை தணிக்கை பேரேடு.'
+                ? 'கோவிலின் அனைத்து நிதி வரவுகள், செலவுகள் மற்றும் பொருள் நன்கொடைகளின் நேரலை தணிக்கை கணக்கு.'
                 : 'Auditable double-entry general ledger with separate dedicated views for incomes and expenses.'}
             </p>
           </div>

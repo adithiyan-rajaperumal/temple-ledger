@@ -167,6 +167,12 @@ export default function FamilyContributionEntry() {
     } else {
       setAmount('');
     }
+    // On mobile devices, smoothly scroll down to the form
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setTimeout(() => {
+        document.getElementById('family-contribution-form-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
   };
 
   // Quick fill amount
@@ -241,7 +247,7 @@ export default function FamilyContributionEntry() {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-amber-600 via-amber-700 to-orange-700 rounded-3xl p-6 sm:p-8 text-white shadow-lg">
+      <div className="bg-gradient-to-r from-amber-600 via-amber-700 to-orange-700 rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 text-white shadow-lg">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-xs text-amber-100 text-xs font-semibold uppercase tracking-wider mb-2">
@@ -284,7 +290,7 @@ export default function FamilyContributionEntry() {
       {/* Main Two-Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Family Finder / Directory (5 cols) */}
-        <div className="lg:col-span-5 bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
+        <div className="lg:col-span-5 bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200 shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
               <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
@@ -440,7 +446,7 @@ export default function FamilyContributionEntry() {
         {/* Right Column: Active Family Contribution Form (7 cols) */}
         <div className="lg:col-span-7 space-y-6">
           {selectedFamily ? (
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+            <div id="family-contribution-form-card" className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-slate-200 shadow-sm space-y-6">
               {/* Selected Family Details Card */}
               <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-5 border border-amber-200/80">
                 <div className="flex flex-wrap items-start justify-between gap-4">

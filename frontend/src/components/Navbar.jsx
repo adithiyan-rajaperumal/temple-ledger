@@ -73,17 +73,17 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Title */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-orange-500 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
-              <Landmark className="w-6 h-6" />
+          <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 flex-1 mr-2">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-orange-500 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform shrink-0">
+              <Landmark className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-slate-900 text-base sm:text-lg tracking-tight leading-tight group-hover:text-amber-700 transition-colors">
+            <div className="flex flex-col min-w-0 overflow-hidden">
+              <span className="font-bold text-slate-900 text-xs sm:text-base md:text-lg leading-tight truncate group-hover:text-amber-700 transition-colors">
                 {t('appTitle')}
               </span>
-              <span className="text-xs text-amber-700 font-medium tracking-wide flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                {t('nav.appSubtitle')}
+              <span className="text-[10px] sm:text-xs text-amber-700 font-medium flex items-center gap-1.5 truncate">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                <span className="truncate">{t('nav.appSubtitle')}</span>
               </span>
             </div>
           </Link>
@@ -195,13 +195,14 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="flex items-center md:hidden space-x-2">
+          {/* Mobile Right Actions: Quick Language Toggle & Menu Hamburger */}
+          <div className="flex items-center md:hidden space-x-1.5 shrink-0">
             {/* Quick Language Toggle on Mobile */}
             <button
               type="button"
               onClick={() => handleLanguageSwitch(currentLang === 'en' ? 'ta' : 'en')}
-              className="px-2.5 py-1 text-xs font-bold rounded-lg bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs"
+              className="px-2.5 py-1 text-xs font-bold rounded-lg bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs active:bg-amber-100"
+              aria-label="Toggle language"
             >
               {currentLang === 'en' ? 'தமிழ்' : 'EN'}
             </button>
@@ -209,7 +210,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 active:bg-slate-200"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -220,7 +221,7 @@ export default function Navbar() {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-5 space-y-2">
+        <div className="md:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-5 space-y-1.5">
           <NavLink
             to="/"
             end
@@ -236,7 +237,7 @@ export default function Navbar() {
             className={mobileNavLinkClass}
           >
             <TrendingUp className="w-5 h-5 mr-3 text-emerald-600" />
-            <span>{isTamil ? 'வரவுகள் பேரேடு' : 'Income Ledger'}</span>
+            <span>{isTamil ? 'வரவுகள்' : 'Income'}</span>
           </NavLink>
           <NavLink
             to="/expenses"
@@ -244,7 +245,7 @@ export default function Navbar() {
             className={mobileNavLinkClass}
           >
             <TrendingDown className="w-5 h-5 mr-3 text-rose-600" />
-            <span>{isTamil ? 'செலவுகள் பேரேடு' : 'Expenses Ledger'}</span>
+            <span>{isTamil ? 'செலவுகள்' : 'Expenses'}</span>
           </NavLink>
           <NavLink
             to="/drives"
@@ -260,7 +261,7 @@ export default function Navbar() {
             className={mobileNavLinkClass}
           >
             <FileSpreadsheet className="w-5 h-5 mr-3 text-slate-500" />
-            <span>{isTamil ? 'முழு வரவு செலவு கணக்கு' : 'Complete Ledger'}</span>
+            <span>{isTamil ? 'முழு கணக்கு' : 'Ledger'}</span>
           </NavLink>
 
           {authed && (

@@ -144,35 +144,35 @@ export default function AdminLayout() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
           <Link
             to="/"
             target="_blank"
-            className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition"
+            className="inline-flex items-center p-2 sm:px-3 sm:py-1.5 rounded-lg text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition"
+            title={t('admin.viewPublic', 'Public Portal')}
           >
-            <ExternalLink className="w-3.5 h-3.5 mr-1 text-slate-500" />
+            <ExternalLink className="w-4 h-4 sm:mr-1 text-slate-500" />
             <span className="hidden sm:inline">{t('admin.viewPublic', 'Public Portal')}</span>
-            <span className="sm:hidden">Public</span>
           </Link>
 
           <button
             type="button"
             onClick={() => setPasswordModalOpen(true)}
-            className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition"
+            className="inline-flex items-center p-2 sm:px-3 sm:py-1.5 rounded-lg text-xs font-semibold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition"
             title={t('auth.changePassword', 'Change Password')}
           >
-            <KeyRound className="w-3.5 h-3.5 mr-1 text-amber-700" />
+            <KeyRound className="w-4 h-4 sm:mr-1 text-amber-700" />
             <span className="hidden sm:inline">{t('auth.changePassword', 'Change Password')}</span>
-            <span className="sm:hidden">Password</span>
           </button>
 
           <button
             type="button"
             onClick={handleLogout}
-            className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 transition"
+            className="inline-flex items-center p-2 sm:px-3 sm:py-1.5 rounded-lg text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 transition"
+            title={t('nav.logout', 'Logout')}
           >
-            <LogOut className="w-3.5 h-3.5 mr-1" />
-            <span>{t('nav.logout', 'Logout')}</span>
+            <LogOut className="w-4 h-4 sm:mr-1" />
+            <span className="hidden sm:inline">{t('nav.logout', 'Logout')}</span>
           </button>
 
           {/* Mobile navigation toggle */}
