@@ -147,12 +147,12 @@ export default function Navbar() {
 
             {/* Right Action Controls: Language Toggle, User Pill, and 3-Line Menu Button */}
             <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
-              {/* Language Switcher (EN | தமிழ்) */}
+              {/* Language Switcher (EN | த on mobile, EN | தமிழ் on desktop) */}
               <div className="flex items-center bg-slate-100 p-0.5 sm:p-1 rounded-xl border border-slate-200">
                 <button
                   type="button"
                   onClick={() => handleLanguageSwitch('en')}
-                  className={`px-2 sm:px-2.5 py-1 text-xs font-bold rounded-lg transition-all ${
+                  className={`px-1.5 sm:px-2.5 py-1 text-xs font-bold rounded-lg transition-all ${
                     currentLang === 'en'
                       ? 'bg-amber-600 text-white shadow-2xs'
                       : 'text-slate-600 hover:text-slate-900'
@@ -165,14 +165,15 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => handleLanguageSwitch('ta')}
-                  className={`px-2 sm:px-2.5 py-1 text-xs font-bold rounded-lg transition-all font-tamil ${
+                  className={`px-1.5 sm:px-2.5 py-1 text-xs font-bold rounded-lg transition-all font-tamil ${
                     currentLang === 'ta'
                       ? 'bg-amber-600 text-white shadow-2xs'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                   aria-label="தமிழுக்கு மாறுங்கள்"
                 >
-                  தமிழ்
+                  <span className="sm:hidden">த</span>
+                  <span className="hidden sm:inline">தமிழ்</span>
                 </button>
               </div>
 
