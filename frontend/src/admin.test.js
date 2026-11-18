@@ -289,8 +289,7 @@ function applyDonorSuggestion(suggestion) {
     village: suggestion.area || suggestion.village || '',
     country: suggestion.country || DEFAULT_COUNTRY,
     state: suggestion.state || DEFAULT_STATE,
-    selectedFamilyId: suggestion.familyId || '',
-    donorSource: suggestion.familyId ? 'VILLAGE_FAMILY_DRIVE' : 'GENERAL_PUBLIC',
+    donorSource: 'GENERAL_PUBLIC',
   };
 }
 
@@ -301,8 +300,7 @@ assert.strictEqual(autofilled.area, 'Gandhinagar');
 assert.strictEqual(autofilled.state, 'Tamil Nadu');
 assert.strictEqual(autofilled.country, 'India');
 assert.strictEqual(autofilled.phone, '9876543210');
-assert.strictEqual(autofilled.selectedFamilyId, 'fam-uuid-123');
-assert.strictEqual(autofilled.donorSource, 'VILLAGE_FAMILY_DRIVE');
+assert.strictEqual(autofilled.donorSource, 'GENERAL_PUBLIC');
 console.log('✓ Autocomplete donor autofill mapping verified');
 
 // 12. Test Cash Donation Split Book No and Receipt Slip No Validation & Payload

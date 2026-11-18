@@ -13,11 +13,9 @@ import {
   MapPin,
   Globe,
   FileText,
-  Building,
   HeartHandshake,
   Printer,
   Sparkles,
-  Target,
   Users,
   ArrowRight
 } from 'lucide-react';
@@ -25,9 +23,6 @@ import {
   recordDonation,
   searchDonors,
   searchAreas,
-  getPublicDrives,
-  getDriveFamilyProgress,
-  getAdminFamilies,
   getPledges
 } from '../../services/api';
 import ReceiptModal from '../../components/ReceiptModal';
@@ -44,9 +39,6 @@ export default function DonationEntry() {
 
   // Mode: CASH | GPAY_ONLINE | IN_KIND
   const [paymentMode, setPaymentMode] = useState('CASH');
-
-  // Source: GENERAL_PUBLIC | VILLAGE_FAMILY_DRIVE
-  const [donorSource, setDonorSource] = useState('GENERAL_PUBLIC');
 
   // Form state
   const [donationDate, setDonationDate] = useState(
@@ -84,19 +76,9 @@ export default function DonationEntry() {
   const [approximateUnitRate, setApproximateUnitRate] = useState('');
   const [storageLocation, setStorageLocation] = useState('Temple Site Store');
 
-  // Linked Drive / Family / Pledge
-  const [selectedDriveId, setSelectedDriveId] = useState('');
-  const [selectedFamilyId, setSelectedFamilyId] = useState('');
+  // Linked Devotee Pledge
   const [selectedPledgeId, setSelectedPledgeId] = useState('');
-  const [familyDriveCommitment, setFamilyDriveCommitment] = useState(null);
-  const [loadingCommitment, setLoadingCommitment] = useState(false);
-  const [detectedFamilyId, setDetectedFamilyId] = useState(null);
-
-  // Lookups data
-  const [drives, setDrives] = useState([]);
-  const [families, setFamilies] = useState([]);
   const [pledges, setPledges] = useState([]);
-  const [familySearch, setFamilySearch] = useState('');
 
   // UI state
   const [submitting, setSubmitting] = useState(false);
@@ -104,33 +86,19 @@ export default function DonationEntry() {
   const [successReceipt, setSuccessReceipt] = useState(null);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
 
-  // Fetch drives, families, pledges on mount
+  // Fetch pledges on mount
   useEffect(() => {
-    async function loadDropdowns() {
+    async function loadPledges() {
       try {
-        const [drivesData, familiesData, pledgesData] = await Promise.allSettled([
-          getPublicDrives(),
-          getAdminFamilies(),
-          getPledges(),
-        ]);
-
-        if (drivesData.status === 'fulfilled' && Array.isArray(drivesData.value)) {
-          setDrives(drivesData.value);
-          if (drivesData.value.length > 0) {
-            setSelectedDriveId(drivesData.value[0].id || drivesData.value[0].driveId);
-          }
-        }
-        if (familiesData.status === 'fulfilled' && Array.isArray(familiesData.value)) {
-          setFamilies(familiesData.value);
-        }
-        if (pledgesData.status === 'fulfilled' && Array.isArray(pledgesData.value)) {
-          setPledges(pledgesData.value);
+        const pledgesData = await getPledges();
+        if (Array.isArray(pledgesData)) {
+          setPledges(pledgesData);
         }
       } catch (err) {
-        console.error('Failed to load lookup data', err);
+        console.error('Failed to load pledges', err);
       }
     }
-    loadDropdowns();
+    loadPledges();
   }, []);
 
   // Close autocomplete dropdowns on outside click
@@ -211,53 +179,8 @@ export default function DonationEntry() {
     } else if (suggestion.state) {
       setState(suggestion.state);
     }
-    if (suggestion.familyId) {
-      setDetectedFamilyId(suggestion.familyId);
-      if (donorSource === 'VILLAGE_FAMILY_DRIVE') {
-        setSelectedFamilyId(suggestion.familyId);
-      }
-    }
     setShowDonorDropdown(false);
   };
-
-  // Fetch family's commitment status for selected drive
-  useEffect(() => {
-    if (donorSource !== 'VILLAGE_FAMILY_DRIVE' || !selectedDriveId || !selectedFamilyId) {
-      setFamilyDriveCommitment(null);
-      return;
-    }
-
-    let isMounted = true;
-    async function fetchCommitment() {
-      try {
-        setLoadingCommitment(true);
-        const progress = await getDriveFamilyProgress(selectedDriveId);
-        if (!isMounted) return;
-        const fam = progress?.families?.find((f) => f.familyId === selectedFamilyId);
-        if (fam) {
-          setFamilyDriveCommitment(fam);
-        } else {
-          const currentDrive = drives.find((d) => (d.id || d.driveId) === selectedDriveId);
-          const defaultTarget = currentDrive?.defaultTargetPerFamily || 10000;
-          setFamilyDriveCommitment({
-            targetAmount: defaultTarget,
-            paidAmount: 0,
-            balanceAmount: defaultTarget,
-            status: 'PENDING',
-          });
-        }
-      } catch (err) {
-        console.error('Failed to fetch family drive commitment:', err);
-      } finally {
-        if (isMounted) setLoadingCommitment(false);
-      }
-    }
-
-    fetchCommitment();
-    return () => {
-      isMounted = false;
-    };
-  }, [donorSource, selectedDriveId, selectedFamilyId, drives]);
 
   // Debounced area search for autocomplete
   useEffect(() => {
@@ -300,24 +223,6 @@ export default function DonationEntry() {
     return q * r;
   }, [quantity, approximateUnitRate]);
 
-  // When family is picked, auto-populate head name & location
-  const handleFamilySelect = (famId) => {
-    setSelectedFamilyId(famId);
-    const fam = families.find((f) => f.id === famId);
-    if (fam) {
-      if (!donorName) setDonorName(fam.headName);
-      if (!donorNameTa && fam.headNameTa) setDonorNameTa(fam.headNameTa);
-      const loc = fam.area || fam.village;
-      if (loc) {
-        setArea(loc);
-        setVillage(loc);
-      }
-      if (fam.state) setState(fam.state);
-      if (fam.country) setCountry(fam.country);
-      if (fam.phone && !phone) setPhone(fam.phone);
-    }
-  };
-
   const resetForm = () => {
     setDonorName('');
     setDonorNameTa('');
@@ -335,10 +240,7 @@ export default function DonationEntry() {
     setItemDescription('');
     setQuantity('');
     setApproximateUnitRate('');
-    setSelectedFamilyId('');
     setSelectedPledgeId('');
-    setFamilyDriveCommitment(null);
-    setDetectedFamilyId(null);
     setErrorMessage('');
     setDonorSuggestions([]);
     setShowDonorDropdown(false);
@@ -400,7 +302,7 @@ export default function DonationEntry() {
       const loc = area.trim() || village.trim();
       const payload = {
         donationDate,
-        donorSource,
+        donorSource: 'GENERAL_PUBLIC',
         donorName: donorName.trim(),
         donorNameTa: donorNameTa.trim() || undefined,
         area: loc || undefined,
@@ -410,8 +312,6 @@ export default function DonationEntry() {
         phone: phone.trim() || undefined,
         paymentMode,
         notes: notes.trim() || undefined,
-        familyId: donorSource === 'VILLAGE_FAMILY_DRIVE' && selectedFamilyId ? selectedFamilyId : undefined,
-        driveId: donorSource === 'VILLAGE_FAMILY_DRIVE' && selectedDriveId ? selectedDriveId : undefined,
         pledgeId: selectedPledgeId || undefined,
       };
 
@@ -443,14 +343,6 @@ export default function DonationEntry() {
       setSubmitting(false);
     }
   };
-
-  const filteredFamilies = families.filter(
-    (f) =>
-      !familySearch ||
-      f.familyCode?.toLowerCase().includes(familySearch.toLowerCase()) ||
-      f.headName?.toLowerCase().includes(familySearch.toLowerCase()) ||
-      (f.headNameTa && f.headNameTa.includes(familySearch))
-  );
 
   return (
     <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
@@ -597,233 +489,10 @@ export default function DonationEntry() {
           </div>
         </div>
 
-        {/* Step 2: Source Allocation (General Public vs Village Family Drive) */}
-        <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
-            2. {t('donation.donorSource', 'Contribution Category / நிதி வகை')}
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setDonorSource('GENERAL_PUBLIC')}
-              className={`p-3.5 rounded-2xl border text-left flex items-center gap-3 transition ${
-                donorSource === 'GENERAL_PUBLIC'
-                  ? 'border-amber-500 bg-amber-50/70 text-amber-950 ring-2 ring-amber-400 font-bold'
-                  : 'border-slate-200 hover:border-slate-300 text-slate-700'
-              }`}
-            >
-              <User className="w-5 h-5 text-amber-600" />
-              <div>
-                <div className="text-sm font-bold">
-                  {t('categories.generalDevotee', 'General Devotee')}
-                </div>
-                <div className="text-[11px] text-slate-500">பொது நன்கொடையாளர்</div>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setDonorSource('VILLAGE_FAMILY_DRIVE')}
-              className={`p-3.5 rounded-2xl border text-left flex items-center gap-3 transition ${
-                donorSource === 'VILLAGE_FAMILY_DRIVE'
-                  ? 'border-amber-500 bg-amber-50/70 text-amber-950 ring-2 ring-amber-400 font-bold'
-                  : 'border-slate-200 hover:border-slate-300 text-slate-700'
-              }`}
-            >
-              <Building className="w-5 h-5 text-amber-600" />
-              <div>
-                <div className="text-sm font-bold">
-                  {t('categories.villageDrive', 'Village Family Drive')}
-                </div>
-                <div className="text-[11px] text-slate-500">கிராம வரி / தவணை நிதி</div>
-              </div>
-            </button>
-          </div>
-
-          {/* Drive & Family Pickers (If Village Family Drive) */}
-          {donorSource === 'VILLAGE_FAMILY_DRIVE' && (
-            <div className="mt-4 p-4 bg-amber-50/50 rounded-2xl border border-amber-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  {t('nav.drives', 'Target Drive')} *
-                </label>
-                <select
-                  value={selectedDriveId}
-                  onChange={(e) => setSelectedDriveId(e.target.value)}
-                  className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium"
-                >
-                  {drives.map((d) => (
-                    <option key={d.id || d.driveId} value={d.id || d.driveId}>
-                      {d.code} - {d.name} {d.nameTa ? `(${d.nameTa})` : ''} - ₹
-                      {Number(d.defaultTargetPerFamily || d.targetAmount || 0).toLocaleString('en-IN')}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  {t('drive.selectFamily', 'Select Family / குடும்பம்')} *
-                </label>
-                <input
-                  type="text"
-                  placeholder="Filter by Code or Name..."
-                  value={familySearch}
-                  onChange={(e) => setFamilySearch(e.target.value)}
-                  className="w-full mb-1.5 px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg"
-                />
-                <select
-                  value={selectedFamilyId}
-                  onChange={(e) => handleFamilySelect(e.target.value)}
-                  className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium"
-                >
-                  <option value="">-- Choose Family ({filteredFamilies.length} available) --</option>
-                  {filteredFamilies.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.familyCode} - {f.headName} {f.headNameTa ? `(${f.headNameTa})` : ''} ({f.village || 'Main Village'})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          )}
-
-          {/* Live Family Commitment Status Card */}
-          {donorSource === 'VILLAGE_FAMILY_DRIVE' && selectedFamilyId && (
-            <div className="mt-3 p-4 bg-amber-50/80 rounded-2xl border border-amber-300 space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Target className="w-4 h-4 text-amber-700" />
-                  <span className="font-bold text-xs sm:text-sm text-amber-950">
-                    {t('drive.familyCommitmentStatus', 'Family Commitment Status for Selected Drive')}
-                  </span>
-                </div>
-                {familyDriveCommitment && (
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                      familyDriveCommitment.status === 'PAID'
-                        ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
-                        : familyDriveCommitment.status === 'PARTIAL'
-                        ? 'bg-amber-200 text-amber-900 border border-amber-400'
-                        : 'bg-rose-100 text-rose-900 border border-rose-300'
-                    }`}
-                  >
-                    {familyDriveCommitment.status === 'PAID'
-                      ? 'முழுவதும் செலுத்தப்பட்டது (PAID IN FULL)'
-                      : familyDriveCommitment.status === 'PARTIAL'
-                      ? 'தவணை முறையில் உள்ளது (PARTIALLY PAID)'
-                      : 'தொடங்கப்படவில்லை (PENDING)'}
-                  </span>
-                )}
-              </div>
-
-              {loadingCommitment ? (
-                <div className="py-2 text-xs text-slate-500 animate-pulse">Calculating family balance...</div>
-              ) : familyDriveCommitment ? (
-                <>
-                  <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                    <div className="bg-white p-2.5 rounded-xl border border-amber-200">
-                      <span className="text-slate-400 block text-[11px] font-semibold">{t('tables.target', 'Target')}</span>
-                      <span className="font-bold text-slate-900 text-sm block mt-0.5 font-mono">
-                        {formatCurrency(familyDriveCommitment.targetAmount)}
-                      </span>
-                    </div>
-                    <div className="bg-white p-2.5 rounded-xl border border-amber-200">
-                      <span className="text-slate-400 block text-[11px] font-semibold">{t('tables.paid', 'Paid So Far')}</span>
-                      <span className="font-bold text-emerald-700 text-sm block mt-0.5 font-mono">
-                        {formatCurrency(familyDriveCommitment.paidAmount)}
-                      </span>
-                    </div>
-                    <div className="bg-white p-2.5 rounded-xl border border-amber-200">
-                      <span className="text-slate-400 block text-[11px] font-semibold">{t('tables.due', 'Remaining Due')}</span>
-                      <span className="font-bold text-rose-700 text-sm block mt-0.5 font-mono">
-                        {formatCurrency(familyDriveCommitment.balanceAmount)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Quick Fill Buttons */}
-                  {familyDriveCommitment.balanceAmount > 0 ? (
-                    <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
-                      <span className="font-semibold text-slate-600">Quick Fill:</span>
-                      <button
-                        type="button"
-                        onClick={() => setAmount(String(familyDriveCommitment.balanceAmount))}
-                        className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg transition shadow-2xs"
-                      >
-                        Pay Full Due ({formatCurrency(familyDriveCommitment.balanceAmount)})
-                      </button>
-                      {familyDriveCommitment.balanceAmount > 2000 && (
-                        <button
-                          type="button"
-                          onClick={() => setAmount(String(Math.round(familyDriveCommitment.balanceAmount / 2)))}
-                          className="px-2.5 py-1 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 font-semibold rounded-lg transition"
-                        >
-                          Pay Half Due ({formatCurrency(Math.round(familyDriveCommitment.balanceAmount / 2))})
-                        </button>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="p-2.5 bg-emerald-100/70 border border-emerald-300 rounded-xl text-emerald-900 text-xs font-semibold flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                      <span>
-                        இந்த குடும்பம் இந்த திட்டத்திற்கான முழு இலக்கு தொகையையும் செலுத்திவிட்டது! (This family has completed the full target for this drive.)
-                      </span>
-                    </div>
-                  )}
-                </>
-              ) : null}
-            </div>
-          )}
-
-          {/* Devotee Belongs to Family Directory Banner */}
-          {detectedFamilyId && donorSource === 'GENERAL_PUBLIC' && (
-            <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between gap-2 text-xs text-amber-900">
-              <div className="flex items-center gap-2">
-                <Building className="w-4 h-4 text-amber-700 flex-shrink-0" />
-                <span>
-                  {t('donation.donorMatchedFamily', 'Devotee is registered in Village Family Directory.')}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setDonorSource('VILLAGE_FAMILY_DRIVE');
-                  setSelectedFamilyId(detectedFamilyId);
-                }}
-                className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg shadow-2xs transition whitespace-nowrap"
-              >
-                {t('donation.switchToFamilyDrive', 'Link to Family Drive / கிராம வரி')}
-              </button>
-            </div>
-          )}
-
-          {/* Optional Pledge Tagging */}
-          {pledges.length > 0 && (
-            <div className="mt-3 flex items-center gap-2 text-xs text-slate-600">
-              <HeartHandshake className="w-4 h-4 text-rose-500" />
-              <span>{t('donation.tagPledge', 'Tag to Devotee Pledge installment (Optional):')}</span>
-              <select
-                value={selectedPledgeId}
-                onChange={(e) => setSelectedPledgeId(e.target.value)}
-                className="px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs"
-              >
-                <option value="">None (Standalone Donation)</option>
-                {pledges.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.pledgeCode} - {p.donorName} ({p.pledgeType} - Target: ₹
-                    {Number(p.targetMonetaryAmount || 0).toLocaleString('en-IN')})
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
-
-        {/* Step 3: Donor Particulars & Location (Bilingual & Cascading) */}
+        {/* Step 2: Donor Particulars & Location (Bilingual & Cascading) */}
         <div className="border-t border-slate-100 pt-5">
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-3">
-            3. {t('donation.donorDetails', 'Donor Information / நன்கொடையாளர் விவரம்')}
+            2. {t('donation.donorDetails', 'Donor Information / நன்கொடையாளர் விவரம்')}
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Donor Name (English) with Smart Autocomplete */}
@@ -1017,10 +686,10 @@ export default function DonationEntry() {
           </div>
         </div>
 
-        {/* Step 4: Mode Specific Financial Entries */}
+        {/* Step 3: Mode Specific Financial Entries */}
         <div className="border-t border-slate-100 pt-5">
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-3">
-            4. {t('donation.paymentDetails', 'Financial Details / கட்டண விவரங்கள்')}
+            3. {t('donation.paymentDetails', 'Financial Details / கட்டண விவரங்கள்')}
           </label>
 
           {/* CASH MODE */}
@@ -1231,6 +900,31 @@ export default function DonationEntry() {
                   className="w-full px-3 py-2 bg-white border border-purple-300 rounded-xl text-sm font-medium"
                 />
               </div>
+            </div>
+          )}
+
+          {/* Optional Pledge Tagging */}
+          {pledges.length > 0 && (
+            <div className="mt-4 p-3.5 bg-rose-50/70 rounded-2xl border border-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2 text-rose-900 font-bold">
+                <HeartHandshake className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>{t('donation.tagPledge', 'Tag to Devotee Pledge installment (Optional):')}</span>
+              </div>
+              <select
+                value={selectedPledgeId}
+                onChange={(e) => setSelectedPledgeId(e.target.value)}
+                className="px-3 py-1.5 bg-white border border-rose-300 rounded-xl text-xs font-medium text-slate-800"
+              >
+                <option value="">
+                  {i18n.language?.startsWith('ta') ? '-- நேரடி நன்கொடை (None) --' : '-- Standalone Donation (None) --'}
+                </option>
+                {pledges.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.pledgeCode} - {p.donorName} ({p.pledgeType} - Target: ₹
+                    {Number(p.targetMonetaryAmount || 0).toLocaleString('en-IN')})
+                  </option>
+                ))}
+              </select>
             </div>
           )}
         </div>
