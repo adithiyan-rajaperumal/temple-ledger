@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { getPublicReceipt } from '../services/api';
+import JainSymbolIcon from './icons/JainSymbolIcon';
 
 /**
  * Digital Receipt Modal for donors and community members.
@@ -218,8 +219,8 @@ export default function ReceiptModal({
             >
               {/* Temple Traditional Header */}
               <div className="text-center pb-5 border-b border-dashed border-slate-300">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-50 border border-amber-200 text-amber-600 mb-2">
-                  <Building2 className="w-6 h-6" />
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-50 border border-amber-200 text-amber-600 mb-2 p-1.5 shadow-2xs">
+                  <JainSymbolIcon className="w-full h-full" />
                 </div>
                 <h2 className="text-lg sm:text-xl font-bold text-slate-900 leading-normal">
                   1008 ஸ்ரீ விருஷபநாத ஜிநாலயம்

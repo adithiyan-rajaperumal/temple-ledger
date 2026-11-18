@@ -20,6 +20,7 @@ import {
 import { changeLanguage } from '../i18n';
 import { isAuthenticated, getCurrentUser, isSuperAdmin, logout } from '../services/auth';
 import ChangePasswordModal from './ChangePasswordModal';
+import JainSymbolIcon from './icons/JainSymbolIcon';
 
 export default function Navbar() {
   const { t, i18n } = useTranslation();
@@ -74,8 +75,8 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo & Title */}
           <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 flex-1 mr-2">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-orange-500 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform shrink-0">
-              <Landmark className="w-5 h-5 sm:w-6 sm:h-6" />
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-orange-500 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform shrink-0 p-1">
+              <JainSymbolIcon className="w-full h-full drop-shadow-xs" />
             </div>
             <div className="flex flex-col min-w-0 overflow-hidden">
               <span className="font-bold text-slate-900 text-xs sm:text-base md:text-lg leading-tight truncate group-hover:text-amber-700 transition-colors">
