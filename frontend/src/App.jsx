@@ -95,7 +95,6 @@ export default function App() {
         </main>
         <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
           <p className="font-semibold text-slate-700">© {new Date().getFullYear()} {t('receipt.title')}</p>
-          <p className="mt-1 text-slate-400">ஓதலவாடி, திருவண்ணாமலை மாவட்டம், தமிழ்நாடு 632326 • othalavadi-jinalayam.in</p>
         </footer>
       </div>
     </BrowserRouter>
