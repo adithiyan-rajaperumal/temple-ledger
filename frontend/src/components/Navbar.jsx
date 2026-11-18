@@ -2,30 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
-  Landmark, 
   LayoutDashboard, 
   Users, 
   FileSpreadsheet, 
   Lock, 
   Menu, 
-  X,
-  Globe,
-  LogOut,
-  ShieldCheck,
-  UserCheck,
-  KeyRound,
-  TrendingUp,
-  TrendingDown
+  X, 
+  LogOut, 
+  ShieldCheck, 
+  UserCheck, 
+  KeyRound, 
+  TrendingUp, 
+  TrendingDown,
+  ChevronRight,
+  ExternalLink
 } from 'lucide-react';
 import { changeLanguage } from '../i18n';
 import { isAuthenticated, getCurrentUser, isSuperAdmin, logout } from '../services/auth';
 import ChangePasswordModal from './ChangePasswordModal';
-import JainSymbolIcon from './icons/JainSymbolIcon';
 
 export default function Navbar() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const currentLang = i18n.language ? i18n.language.split('-')[0] : 'en';
   const isTamil = currentLang === 'ta';
@@ -45,285 +44,358 @@ export default function Navbar() {
     return () => window.removeEventListener('temple-ledger-auth-change', handleAuthChange);
   }, []);
 
+  // Close drawer on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setDrawerOpen(false);
+      }
+    };
+    if (drawerOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [drawerOpen]);
+
   const handleLanguageSwitch = (lang) => {
     changeLanguage(lang);
   };
 
   const handleLogout = () => {
     logout();
-    setMobileMenuOpen(false);
+    setDrawerOpen(false);
     navigate('/');
   };
 
-  const navLinkClass = ({ isActive }) =>
-    `inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 ${
-      isActive
-        ? 'bg-amber-100 text-amber-900 font-semibold shadow-sm'
-        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-    }`;
-
-  const mobileNavLinkClass = ({ isActive }) =>
-    `flex items-center px-3 py-2 rounded-md text-base font-medium ${
-      isActive
-        ? 'bg-amber-100 text-amber-900 font-semibold'
-        : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
-    }`;
+  const navMenuItems = [
+    {
+      to: '/',
+      end: true,
+      icon: LayoutDashboard,
+      iconColor: 'text-amber-600 bg-amber-50',
+      titleEn: 'Transparency Dashboard',
+      titleTa: 'வெளிப்படைத்தன்மை பலகை',
+      descEn: 'Cash balance, live inflow & expense charts',
+      descTa: 'நிதி நிலவரம் & நேரலை வரைபடங்கள்',
+    },
+    {
+      to: '/income',
+      icon: TrendingUp,
+      iconColor: 'text-emerald-600 bg-emerald-50',
+      titleEn: 'Income & Inflows',
+      titleTa: 'வரவுகள் விவரம்',
+      descEn: 'Devotee donations, GPay & in-kind materials',
+      descTa: 'பக்தர் நன்கொடைகள், ஜிபே & பொருள் வரவு',
+    },
+    {
+      to: '/expenses',
+      icon: TrendingDown,
+      iconColor: 'text-rose-600 bg-rose-50',
+      titleEn: 'Expenses & Outflows',
+      titleTa: 'செலவுகள் விவரம்',
+      descEn: 'Materials, labour wages & contractor payouts',
+      descTa: 'பொருட்கள், கூலி & ஒப்பந்த கொடுப்பனவு',
+    },
+    {
+      to: '/drives',
+      icon: Users,
+      iconColor: 'text-amber-600 bg-amber-50',
+      titleEn: 'Village Family Contribution',
+      titleTa: 'கிராம குடும்ப பங்களிப்பு',
+      descEn: 'Drive commitments, target progress & receipts',
+      descTa: 'திருப்பணி திட்ட குடும்ப நிலவரம்',
+    },
+    {
+      to: '/transactions',
+      icon: FileSpreadsheet,
+      iconColor: 'text-indigo-600 bg-indigo-50',
+      titleEn: 'Complete Community Ledger',
+      titleTa: 'முழு வரவு செலவு கணக்கு',
+      descEn: 'Searchable audit ledger with Excel filters',
+      descTa: 'வடிகட்டி வசதியுடன் தணிக்கை கணக்கு',
+    },
+  ];
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-slate-200 shadow-xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo & Title */}
-          <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 flex-1 mr-2">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-orange-500 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform shrink-0 p-1">
-              <JainSymbolIcon className="w-full h-full drop-shadow-xs" />
-            </div>
-            <div className="flex flex-col min-w-0 overflow-hidden">
-              <span className="font-bold text-slate-900 text-xs sm:text-base md:text-lg leading-tight truncate group-hover:text-amber-700 transition-colors">
-                {t('appTitle')}
-              </span>
-              <span className="text-[10px] sm:text-xs text-amber-700 font-medium flex items-center gap-1.5 truncate">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
-                <span className="truncate">{t('nav.appSubtitle')}</span>
-              </span>
-            </div>
-          </Link>
+    <>
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200 shadow-2xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Temple Brand Logo & Title */}
+            <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group min-w-0 flex-1 mr-2">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white p-0.5 border border-amber-200 shadow-xs flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
+                <img
+                  src="/assets/images/jain_symbol.jpg"
+                  alt="1008 Sri Vrishabhanatha Jinalayam"
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = '/jain_symbol.jpg';
+                  }}
+                />
+              </div>
+              <div className="flex flex-col min-w-0 overflow-hidden">
+                <span className="font-bold text-slate-900 text-xs sm:text-base md:text-lg leading-tight truncate group-hover:text-amber-700 transition-colors">
+                  {t('appTitle')}
+                </span>
+                <span className="text-[10px] sm:text-xs text-amber-700 font-medium flex items-center gap-1.5 truncate">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                  <span className="truncate">{t('nav.appSubtitle')}</span>
+                </span>
+              </div>
+            </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-1.5 lg:space-x-2">
-            <NavLink to="/" end className={navLinkClass}>
-              <LayoutDashboard className="w-4 h-4 mr-1.5" />
-              {t('nav.dashboard')}
-            </NavLink>
-            <NavLink to="/income" className={navLinkClass}>
-              <TrendingUp className="w-4 h-4 mr-1.5 text-emerald-600" />
-              <span>{isTamil ? 'வரவுகள்' : 'Income'}</span>
-            </NavLink>
-            <NavLink to="/expenses" className={navLinkClass}>
-              <TrendingDown className="w-4 h-4 mr-1.5 text-rose-600" />
-              <span>{isTamil ? 'செலவுகள்' : 'Expenses'}</span>
-            </NavLink>
-            <NavLink to="/drives" className={navLinkClass}>
-              <Users className="w-4 h-4 mr-1.5 text-amber-600" />
-              {t('nav.drives')}
-            </NavLink>
-            <NavLink to="/transactions" className={navLinkClass}>
-              <FileSpreadsheet className="w-4 h-4 mr-1.5 text-slate-500" />
-              <span>{isTamil ? 'முழு கணக்கு' : 'Ledger'}</span>
-            </NavLink>
-
-            {/* Authenticated Admin Tab */}
-            {authed && (
-              <NavLink to="/admin" className={navLinkClass}>
-                {superAdmin ? (
-                  <ShieldCheck className="w-4 h-4 mr-1.5 text-amber-600" />
-                ) : (
-                  <UserCheck className="w-4 h-4 mr-1.5 text-blue-600" />
-                )}
-                <span>{t('nav.adminPortal', 'Admin Portal')}</span>
-              </NavLink>
-            )}
-          </nav>
-
-          {/* Desktop Right Actions: Language Toggle & User Status / Admin Login */}
-          <div className="hidden md:flex items-center space-x-3">
-            {/* Bilingual Toggle Button (EN | தமிழ்) */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200">
-              <Globe className="w-4 h-4 text-slate-500 ml-1.5 mr-1" />
-              <button
-                type="button"
-                onClick={() => handleLanguageSwitch('en')}
-                className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
-                  currentLang === 'en'
-                    ? 'bg-amber-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-                }`}
-                aria-label="Switch to English"
-              >
-                EN
-              </button>
-              <span className="text-slate-300 mx-0.5">|</span>
-              <button
-                type="button"
-                onClick={() => handleLanguageSwitch('ta')}
-                className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all font-tamil ${
-                  currentLang === 'ta'
-                    ? 'bg-amber-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-                }`}
-                aria-label="தமிழுக்கு மாறுங்கள்"
-              >
-                தமிழ்
-              </button>
-            </div>
-
-            {/* User Profile or Admin Login Button */}
-            {authed ? (
-              <div className="flex items-center gap-2 pl-1 border-l border-slate-200">
-                <div className="flex flex-col text-right leading-tight">
-                  <span className="text-xs font-bold text-slate-900 truncate max-w-[120px]">
-                    {user?.fullName || user?.username}
-                  </span>
-                  <span className="text-[10px] font-semibold text-slate-500">
-                    {superAdmin ? 'Super Admin' : 'Operator'}
-                  </span>
-                </div>
+            {/* Right Action Controls: Language Toggle, User Pill, and 3-Line Menu Button */}
+            <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
+              {/* Language Switcher (EN | தமிழ்) */}
+              <div className="flex items-center bg-slate-100 p-0.5 sm:p-1 rounded-xl border border-slate-200">
                 <button
                   type="button"
-                  onClick={() => setPasswordModalOpen(true)}
-                  title={t('auth.changePassword', 'Change Password')}
-                  className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition"
+                  onClick={() => handleLanguageSwitch('en')}
+                  className={`px-2 sm:px-2.5 py-1 text-xs font-bold rounded-lg transition-all ${
+                    currentLang === 'en'
+                      ? 'bg-amber-600 text-white shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                  aria-label="Switch to English"
                 >
-                  <KeyRound className="w-4 h-4" />
+                  EN
                 </button>
+                <span className="text-slate-300 mx-0.5">|</span>
                 <button
                   type="button"
-                  onClick={handleLogout}
-                  title="Logout"
-                  className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                  onClick={() => handleLanguageSwitch('ta')}
+                  className={`px-2 sm:px-2.5 py-1 text-xs font-bold rounded-lg transition-all font-tamil ${
+                    currentLang === 'ta'
+                      ? 'bg-amber-600 text-white shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                  aria-label="தமிழுக்கு மாறுங்கள்"
                 >
-                  <LogOut className="w-4 h-4" />
+                  தமிழ்
                 </button>
               </div>
-            ) : (
-              <Link
-                to="/login"
-                className="inline-flex items-center px-3.5 py-1.5 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-400 transition-colors shadow-2xs"
+
+              {/* Authenticated Operator Status Badge (if logged in) */}
+              {authed && (
+                <div className="hidden lg:flex items-center gap-1.5 pl-2 border-l border-slate-200">
+                  <div className="flex flex-col text-right leading-tight">
+                    <span className="text-xs font-bold text-slate-900 truncate max-w-[120px]">
+                      {user?.fullName || user?.username}
+                    </span>
+                    <span className="text-[10px] font-semibold text-slate-500">
+                      {superAdmin ? 'Super Admin' : 'Operator'}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Universal 3-Lines Navbar Menu Button (Laptop & Mobile) */}
+              <button
+                type="button"
+                onClick={() => setDrawerOpen(true)}
+                className="inline-flex items-center gap-2 px-3 py-2 sm:px-3.5 sm:py-2 rounded-xl text-slate-800 bg-slate-100 hover:bg-amber-50 hover:text-amber-900 hover:border-amber-300 border border-slate-200 shadow-2xs transition font-bold text-xs sm:text-sm active:scale-95"
+                aria-label="Open Navigation Menu"
+                title={isTamil ? 'மெனுவை திறக்குக' : 'Open Menu'}
               >
-                <Lock className="w-4 h-4 mr-1.5 text-slate-500" />
-                {t('nav.login')}
-              </Link>
-            )}
-          </div>
-
-          {/* Mobile Right Actions: Quick Language Toggle & Menu Hamburger */}
-          <div className="flex items-center md:hidden space-x-1.5 shrink-0">
-            {/* Quick Language Toggle on Mobile */}
-            <button
-              type="button"
-              onClick={() => handleLanguageSwitch(currentLang === 'en' ? 'ta' : 'en')}
-              className="px-2.5 py-1 text-xs font-bold rounded-lg bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs active:bg-amber-100"
-              aria-label="Toggle language"
-            >
-              {currentLang === 'en' ? 'தமிழ்' : 'EN'}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 active:bg-slate-200"
-              aria-label="Toggle navigation menu"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+                <Menu className="w-5 h-5 text-slate-700" />
+                <span className="hidden sm:inline">
+                  {isTamil ? 'மெனு' : 'Menu'}
+                </span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Mobile Menu Dropdown */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-5 space-y-1.5">
-          <NavLink
-            to="/"
-            end
-            onClick={() => setMobileMenuOpen(false)}
-            className={mobileNavLinkClass}
-          >
-            <LayoutDashboard className="w-5 h-5 mr-3 text-slate-500" />
-            {t('nav.dashboard')}
-          </NavLink>
-          <NavLink
-            to="/income"
-            onClick={() => setMobileMenuOpen(false)}
-            className={mobileNavLinkClass}
-          >
-            <TrendingUp className="w-5 h-5 mr-3 text-emerald-600" />
-            <span>{isTamil ? 'வரவுகள்' : 'Income'}</span>
-          </NavLink>
-          <NavLink
-            to="/expenses"
-            onClick={() => setMobileMenuOpen(false)}
-            className={mobileNavLinkClass}
-          >
-            <TrendingDown className="w-5 h-5 mr-3 text-rose-600" />
-            <span>{isTamil ? 'செலவுகள்' : 'Expenses'}</span>
-          </NavLink>
-          <NavLink
-            to="/drives"
-            onClick={() => setMobileMenuOpen(false)}
-            className={mobileNavLinkClass}
-          >
-            <Users className="w-5 h-5 mr-3 text-amber-600" />
-            {t('nav.drives')}
-          </NavLink>
-          <NavLink
-            to="/transactions"
-            onClick={() => setMobileMenuOpen(false)}
-            className={mobileNavLinkClass}
-          >
-            <FileSpreadsheet className="w-5 h-5 mr-3 text-slate-500" />
-            <span>{isTamil ? 'முழு கணக்கு' : 'Ledger'}</span>
-          </NavLink>
+      {/* Slide-Over Navigation Drawer for Laptop & Mobile */}
+      {drawerOpen && (
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          {/* Dimmed Backdrop */}
+          <div
+            className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+            onClick={() => setDrawerOpen(false)}
+            aria-hidden="true"
+          />
 
-          {authed && (
-            <NavLink
-              to="/admin"
-              onClick={() => setMobileMenuOpen(false)}
-              className={mobileNavLinkClass}
+          {/* Drawer Container Panel */}
+          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+            <aside
+              className="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-200 border-l border-slate-200"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Site Navigation"
             >
-              {superAdmin ? (
-                <ShieldCheck className="w-5 h-5 mr-3 text-amber-600" />
-              ) : (
-                <UserCheck className="w-5 h-5 mr-3 text-blue-600" />
-              )}
-              {t('nav.adminPortal', 'Admin Portal')}
-            </NavLink>
-          )}
-
-          <div className="pt-3 border-t border-slate-200 flex flex-col gap-2">
-            {authed ? (
-              <div className="flex flex-col gap-2 p-3 bg-slate-50 rounded-2xl border border-slate-200/60">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-bold text-slate-900">
-                      {user?.fullName || user?.username}
-                    </div>
-                    <div className="text-xs text-slate-500">
-                      {superAdmin ? 'Super Admin' : 'Data Entry Operator'}
-                    </div>
+              {/* Drawer Header */}
+              <div className="p-5 border-b border-slate-100 bg-gradient-to-r from-amber-50/70 to-orange-50/70 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white p-0.5 border border-amber-200 shadow-xs flex items-center justify-center overflow-hidden shrink-0">
+                    <img
+                      src="/assets/images/jain_symbol.jpg"
+                      alt="1008 Sri Vrishabhanatha Jinalayam"
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = '/jain_symbol.jpg';
+                      }}
+                    />
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="px-3 py-1.5 text-xs font-bold text-red-700 bg-red-100 hover:bg-red-200 rounded-lg flex items-center gap-1"
-                  >
-                    <LogOut className="w-3.5 h-3.5" />
-                    <span>{t('nav.logout', 'Logout')}</span>
-                  </button>
+                  <div>
+                    <h2 className="font-bold text-slate-900 text-sm sm:text-base leading-tight">
+                      {t('appTitle')}
+                    </h2>
+                    <p className="text-xs text-amber-800 font-medium mt-0.5">
+                      {t('nav.appSubtitle')} • othalavadi-jinalayam.in
+                    </p>
+                  </div>
                 </div>
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    setPasswordModalOpen(true);
-                  }}
-                  className="w-full mt-1 py-2 px-3 text-xs font-bold text-amber-900 bg-amber-100/70 hover:bg-amber-200/70 rounded-xl flex items-center justify-center gap-1.5 transition"
+                  onClick={() => setDrawerOpen(false)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-white/80 border border-transparent hover:border-slate-200 transition"
+                  aria-label="Close menu"
                 >
-                  <KeyRound className="w-3.5 h-3.5 text-amber-700" />
-                  <span>{t('auth.changePassword', 'Change Password')}</span>
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-            ) : (
-              <Link
-                to="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-center w-full px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100"
-              >
-                <Lock className="w-4 h-4 mr-2 text-slate-500" />
-                {t('nav.login')}
-              </Link>
-            )}
+
+              {/* Navigation Items List */}
+              <div className="p-4 sm:p-5 space-y-2 flex-1 overflow-y-auto">
+                <div className="px-2 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  {isTamil ? 'பக்கங்கள்' : 'Navigation Menu'}
+                </div>
+
+                {navMenuItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      end={item.end}
+                      onClick={() => setDrawerOpen(false)}
+                      className={({ isActive }) =>
+                        `flex items-center justify-between p-3 rounded-2xl transition group ${
+                          isActive
+                            ? 'bg-amber-100 text-amber-950 font-bold border border-amber-300/80 shadow-xs'
+                            : 'hover:bg-slate-50 text-slate-700 border border-transparent'
+                        }`
+                      }
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`p-2.5 rounded-xl shrink-0 ${item.iconColor}`}>
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0 text-left">
+                          <p className="text-sm font-bold truncate">
+                            {isTamil ? item.titleTa : item.titleEn}
+                          </p>
+                          <p className="text-[11px] text-slate-500 font-normal truncate mt-0.5">
+                            {isTamil ? item.descTa : item.descEn}
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-amber-700 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
+                    </NavLink>
+                  );
+                })}
+
+                {/* Authenticated Admin Portal Item */}
+                {authed && (
+                  <NavLink
+                    to="/admin"
+                    onClick={() => setDrawerOpen(false)}
+                    className={({ isActive }) =>
+                      `flex items-center justify-between p-3 rounded-2xl transition group mt-3 ${
+                        isActive
+                          ? 'bg-amber-100 text-amber-950 font-bold border border-amber-300/80 shadow-xs'
+                          : 'hover:bg-slate-50 text-slate-700 border border-transparent'
+                      }`
+                    }
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="p-2.5 rounded-xl bg-amber-100 text-amber-800 shrink-0">
+                        {superAdmin ? (
+                          <ShieldCheck className="w-5 h-5" />
+                        ) : (
+                          <UserCheck className="w-5 h-5" />
+                        )}
+                      </div>
+                      <div className="min-w-0 text-left">
+                        <p className="text-sm font-bold truncate">
+                          {t('nav.adminPortal', 'Admin Portal')}
+                        </p>
+                        <p className="text-[11px] text-slate-500 font-normal truncate mt-0.5">
+                          {isTamil ? 'குடும்ப வரி, செலவு & நிர்வாக பதிவு' : 'Family quotas & management'}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-200 text-amber-900 shrink-0">
+                      {superAdmin ? 'Super Admin' : 'Operator'}
+                    </span>
+                  </NavLink>
+                )}
+              </div>
+
+              {/* Drawer Footer Actions */}
+              <div className="p-5 border-t border-slate-200 bg-slate-50 space-y-3">
+                {authed ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-3 bg-white rounded-2xl border border-slate-200 shadow-2xs">
+                      <div>
+                        <div className="text-sm font-bold text-slate-900">
+                          {user?.fullName || user?.username}
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {superAdmin ? 'Super Administrator' : 'Data Entry Operator'}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="px-3 py-1.5 text-xs font-bold text-red-700 bg-red-100 hover:bg-red-200 rounded-xl flex items-center gap-1.5 transition"
+                      >
+                        <LogOut className="w-3.5 h-3.5" />
+                        <span>{t('nav.logout', 'Logout')}</span>
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDrawerOpen(false);
+                        setPasswordModalOpen(true);
+                      }}
+                      className="w-full py-2.5 px-3 text-xs font-bold text-amber-950 bg-amber-100 hover:bg-amber-200 rounded-xl flex items-center justify-center gap-2 transition"
+                    >
+                      <KeyRound className="w-4 h-4 text-amber-700" />
+                      <span>{t('auth.changePassword', 'Change Password')}</span>
+                    </button>
+                  </div>
+                ) : (
+                  <Link
+                    to="/login"
+                    onClick={() => setDrawerOpen(false)}
+                    className="flex items-center justify-center w-full px-4 py-3 border border-slate-300 rounded-2xl text-sm font-bold text-slate-700 bg-white hover:bg-slate-100 transition shadow-2xs"
+                  >
+                    <Lock className="w-4 h-4 mr-2 text-slate-500" />
+                    <span>{t('nav.login')}</span>
+                  </Link>
+                )}
+
+                <div className="pt-2 text-center text-[11px] text-slate-400">
+                  <a
+                    href="https://othalavadi-jinalayam.in"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 hover:text-amber-700 hover:underline"
+                  >
+                    <span>othalavadi-jinalayam.in</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+            </aside>
           </div>
         </div>
       )}
@@ -333,6 +405,6 @@ export default function Navbar() {
         isOpen={passwordModalOpen}
         onClose={() => setPasswordModalOpen(false)}
       />
-    </header>
+    </>
   );
 }

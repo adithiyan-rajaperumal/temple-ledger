@@ -219,8 +219,16 @@ export default function ReceiptModal({
             >
               {/* Temple Traditional Header */}
               <div className="text-center pb-5 border-b border-dashed border-slate-300">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-50 border border-amber-200 text-amber-600 mb-2 p-1.5 shadow-2xs">
-                  <JainSymbolIcon className="w-full h-full" />
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-white border border-amber-200 text-amber-600 mb-2 p-1 shadow-2xs overflow-hidden">
+                  <img
+                    src="/assets/images/jain_symbol.jpg"
+                    alt="1008 Sri Vrishabhanatha Jinalayam"
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = '/jain_symbol.jpg';
+                    }}
+                  />
                 </div>
                 <h2 className="text-lg sm:text-xl font-bold text-slate-900 leading-normal">
                   1008 ஸ்ரீ விருஷபநாத ஜிநாலயம்
