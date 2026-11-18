@@ -538,26 +538,31 @@ export default function DriveConfiguration() {
 
       {/* Create Drive Modal */}
       {showDriveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl border border-slate-200 space-y-4 my-auto max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900">
-                Create New Community Drive
-              </h3>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  Create New Community Drive
+                </h3>
+                <p className="text-xs text-slate-500">
+                  புதிய திருப்பணி நிதி திட்டம்
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => setShowDriveModal(false)}
-                className="text-slate-400 hover:text-slate-600"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleCreateDrive} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Drive Code *
+                    Drive Code / குறியீடு *
                   </label>
                   <input
                     type="text"
@@ -565,7 +570,7 @@ export default function DriveConfiguration() {
                     placeholder="e.g. DRIVE-2"
                     value={newDriveCode}
                     onChange={(e) => setNewDriveCode(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm uppercase font-mono font-bold"
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm uppercase font-mono font-bold focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                   />
                 </div>
                 <div>
@@ -580,7 +585,7 @@ export default function DriveConfiguration() {
                     placeholder="20000"
                     value={newDriveTarget}
                     onChange={(e) => setNewDriveTarget(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold"
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                   />
                 </div>
               </div>
@@ -595,7 +600,7 @@ export default function DriveConfiguration() {
                   placeholder="e.g. Second Stage Sanctum Renovation"
                   value={newDriveName}
                   onChange={(e) => setNewDriveName(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                 />
               </div>
 
@@ -608,42 +613,42 @@ export default function DriveConfiguration() {
                   placeholder="எ.கா. இரண்டாம் கட்ட திருப்பணி நிதி"
                   value={newDriveNameTa}
                   onChange={(e) => setNewDriveNameTa(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-tamil"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-tamil focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Start Date *
+                    Start Date / துவக்க தேதி *
                   </label>
                   <input
                     type="date"
                     required
                     value={newDriveStartDate}
                     onChange={(e) => setNewDriveStartDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium"
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Description
+                    Description / குறிப்பு
                   </label>
                   <input
                     type="text"
                     placeholder="Optional remarks..."
                     value={newDriveDescription}
                     onChange={(e) => setNewDriveDescription(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium"
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowDriveModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold border border-slate-300 text-slate-600 hover:bg-slate-50"
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold border border-slate-300 text-slate-600 hover:bg-slate-50"
                 >
                   Cancel
                 </button>
@@ -661,26 +666,31 @@ export default function DriveConfiguration() {
 
       {/* Add Family to Directory Modal */}
       {showFamilyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl border border-slate-200 space-y-4 my-auto max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900">
-                Add Family to Master Directory
-              </h3>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  Add Family to Master Directory
+                </h3>
+                <p className="text-xs text-slate-500">
+                  புதிய குடும்பத்தை பதிவு செய்க
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => setShowFamilyModal(false)}
-                className="text-slate-400 hover:text-slate-600"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleAddFamily} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Family Code *
+                    Family Code / குடும்ப எண் *
                   </label>
                   <input
                     type="text"
@@ -688,19 +698,19 @@ export default function DriveConfiguration() {
                     placeholder="e.g. FAM-061"
                     value={newFamilyCode}
                     onChange={(e) => setNewFamilyCode(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm uppercase font-mono font-bold"
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm uppercase font-mono font-bold focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Phone Number
+                    Phone Number / தொலைபேசி
                   </label>
                   <input
                     type="tel"
                     placeholder="9876543210"
                     value={newFamilyPhone}
                     onChange={(e) => setNewFamilyPhone(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium"
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                   />
                 </div>
               </div>
@@ -715,7 +725,7 @@ export default function DriveConfiguration() {
                   placeholder="e.g. K. Sundaram"
                   value={newFamilyHeadName}
                   onChange={(e) => setNewFamilyHeadName(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                 />
               </div>
 
@@ -728,60 +738,61 @@ export default function DriveConfiguration() {
                   placeholder="எ.கா. கு. சுந்தரம்"
                   value={newFamilyHeadNameTa}
                   onChange={(e) => setNewFamilyHeadNameTa(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-tamil"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-tamil focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              {/* Address Fields: Stacked on mobile in new lines, 3-column grid on desktop */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Door No
+                    Door No / கதவு எண்
                   </label>
                   <input
                     type="text"
                     placeholder="e.g. 12/4"
                     value={newFamilyDoorNo}
                     onChange={(e) => setNewFamilyDoorNo(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium"
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Street
+                    Street / தெரு பெயர்
                   </label>
                   <input
                     type="text"
-                    placeholder="West Street"
+                    placeholder="e.g. மேட்டு தெரு / Mettu Street"
                     value={newFamilyStreet}
                     onChange={(e) => setNewFamilyStreet(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium"
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Village
+                    Village / கிராமம்
                   </label>
                   <input
                     type="text"
-                    placeholder="Main Village"
+                    placeholder="ஓதலவாடி / Othalavadi"
                     value={newFamilyVillage}
                     onChange={(e) => setNewFamilyVillage(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium"
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowFamilyModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold border border-slate-300 text-slate-600 hover:bg-slate-50"
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold border border-slate-300 text-slate-600 hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-amber-600 text-white hover:bg-amber-700 shadow-sm"
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-600 text-white hover:bg-amber-700 shadow-sm"
                 >
                   Add Family
                 </button>
